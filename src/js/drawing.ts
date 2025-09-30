@@ -75,7 +75,7 @@ function defineFolderFrontPath(ctx, width, height) {
     const frontHeight = height - settings.frontPartOffsetY;
     const cornerRadius = Math.min(settings.cornerRadius, width / 4, frontHeight / 4);
     const tabWidth = Math.min(settings.dynamicTabWidth, width * 0.8);
-    const tabOffset = Math.min(settings.dynamicTabOffset, width - tabWidth);
+    const tabOffset = Math.max(0, Math.min(settings.dynamicTabOffset, width - tabWidth));
     ctx.beginPath();
     // Main body of the folder (rounded rectangle)
     ctx.roundRect(0, settings.frontPartOffsetY, width, frontHeight, cornerRadius);
@@ -85,7 +85,7 @@ function defineFolderFrontPath(ctx, width, height) {
     const tabCornerRadius = Math.min(cornerRadius / 2, TAB_HEIGHT / 2);
     // Only draw tab if it fits within bounds
     if (tabY >= 0 && tabX + tabWidth <= width) {
-        ctx.roundRect(tabX, tabY, tabWidth, TAB_HEIGHT + cornerRadius, [tabCornerRadius, tabCornerRadius, 0, 0]);
+        ctx.roundRect(tabX, tabY, tabWidth, TAB_HEIGHT, [tabCornerRadius, tabCornerRadius, 0, 0]);
     }
 }
 // Draw image clipped to a specific path
@@ -125,19 +125,18 @@ function drawClippedImage(ctx, image, pathWidth, pathHeight, clipPathFn) {
     if (dWidth > 0 && dHeight > 0 && sWidth > 0 && sHeight > 0) {
         // Apply filters to offscreen canvas
         const blur = settings.imageBlur || 0;
-        const brightness = settings.imageBrightness || 100;
         const contrast = settings.imageContrast || 100;
         const saturation = settings.imageSaturation || 100;
-        const highlight = settings.highlightStrength ? (settings.highlightStrength * 100) : 0;
+
+        // Combine brightness and highlight into a single value
+        const highlightAdjustment = settings.highlightStrength ? settings.highlightStrength * 50 : 0;
+        const totalBrightness = (settings.imageBrightness || 100) + highlightAdjustment;
+
         let filterString = '';
         if (blur > 0) filterString += `blur(${blur}px) `;
-        if (brightness !== 100) filterString += `brightness(${brightness}%) `;
+        if (totalBrightness !== 100) filterString += `brightness(${totalBrightness}%) `;
         if (contrast !== 100) filterString += `contrast(${contrast}%) `;
         if (saturation !== 100) filterString += `saturate(${saturation}%) `;
-        if (highlight !== 0) {
-            const highlightBrightness = 100 + (highlight * 0.5);
-            filterString += `brightness(${highlightBrightness}%) `;
-        }
         offscreenCtx.filter = filterString.trim() || 'none';
         // Apply user transforms to offscreen context
         offscreenCtx.save();
@@ -154,9 +153,9 @@ function drawClippedImage(ctx, image, pathWidth, pathHeight, clipPathFn) {
             const strips = 200; // Increased from 80 for smoother result
             const fitWidth = dWidth;
             const fitHeight = dHeight;
-            const halfTaperPx = (taper / 100) * fitWidth / 2 * scaleX;
-            const topWidth = fitWidth * scaleX + halfTaperPx;
-            const bottomWidth = fitWidth * scaleX - halfTaperPx;
+            const halfTaperPx = (taper / 100) * fitWidth / 2;
+            const topWidth = fitWidth + halfTaperPx;
+            const bottomWidth = fitWidth - halfTaperPx;
             
             // Enable high-quality rendering
             offscreenCtx.imageSmoothingEnabled = true;
@@ -167,8 +166,8 @@ function drawClippedImage(ctx, image, pathWidth, pathHeight, clipPathFn) {
                 const nextT = (i + 1) / (strips - 1);
                 
                 // Use floating-point precision for smoother positioning
-                const y = -fitHeight * scaleY / 2 + (fitHeight * scaleY * t);
-                const nextY = -fitHeight * scaleY / 2 + (fitHeight * scaleY * nextT);
+                const y = -fitHeight / 2 + (fitHeight * t);
+                const nextY = -fitHeight / 2 + (fitHeight * nextT);
                 const stripHeight = nextY - y;
                 
                 // Calculate width at this position with smooth interpolation
@@ -209,101 +208,56 @@ function drawClippedImage(ctx, image, pathWidth, pathHeight, clipPathFn) {
 }
 // Update UI controls from current state
 export function updateControlsFromState() {
-    // Shape controls - with null checks
-    const strokeWidthSlider = document.getElementById('strokeWidthSlider');
-    const strokeWidthValue = document.getElementById('strokeWidthValue');
-    const cornerRadiusSlider = document.getElementById('cornerRadiusSlider');
-    const cornerRadiusValue = document.getElementById('cornerRadiusValue');
-    const taperAmountSlider = document.getElementById('taperAmountSlider');
-    const taperAmountValue = document.getElementById('taperAmountValue');
-    const frontOffsetYSlider = document.getElementById('frontOffsetYSlider');
-    const frontOffsetYValue = document.getElementById('frontOffsetYValue');
-    const tabWidthSlider = document.getElementById('tabWidthSlider');
-    const tabWidthValue = document.getElementById('tabWidthValue');
-    const tabOffsetSlider = document.getElementById('tabOffsetSlider');
-    const tabOffsetValue = document.getElementById('tabOffsetValue');
-    if (strokeWidthSlider) strokeWidthSlider.value = settings.borderWidth;
-    if (strokeWidthValue) strokeWidthValue.textContent = settings.borderWidth;
-    if (cornerRadiusSlider) cornerRadiusSlider.value = settings.cornerRadius;
-    if (cornerRadiusValue) cornerRadiusValue.textContent = settings.cornerRadius;
-    if (taperAmountSlider) taperAmountSlider.value = settings.taperAmount;
-    if (taperAmountValue) taperAmountValue.textContent = settings.taperAmount;
-    if (frontOffsetYSlider) frontOffsetYSlider.value = settings.frontPartOffsetY;
-    if (frontOffsetYValue) frontOffsetYValue.textContent = settings.frontPartOffsetY;
-    if (tabWidthSlider) tabWidthSlider.value = settings.dynamicTabWidth;
-    if (tabWidthValue) tabWidthValue.textContent = settings.dynamicTabWidth;
-    if (tabOffsetSlider) tabOffsetSlider.value = settings.dynamicTabOffset;
-    if (tabOffsetValue) tabOffsetValue.textContent = settings.dynamicTabOffset;
+    // Helper to update a slider and its value display
+    const updateSlider = (sliderId: string, valueId: string, value: number, unit: string = '') => {
+        const slider = document.getElementById(sliderId) as HTMLInputElement;
+        if (slider) slider.value = String(value);
+        const valueDisplay = document.getElementById(valueId);
+        if (valueDisplay) valueDisplay.textContent = `${value}${unit}`;
+    };
+
+    // Shape controls
+    updateSlider('strokeWidthSlider', 'strokeWidthValue', settings.borderWidth);
+    updateSlider('cornerRadiusSlider', 'cornerRadiusValue', settings.cornerRadius);
+    updateSlider('taperAmountSlider', 'taperAmountValue', settings.taperAmount);
+    updateSlider('frontOffsetYSlider', 'frontOffsetYValue', settings.frontPartOffsetY);
+    updateSlider('tabWidthSlider', 'tabWidthValue', settings.dynamicTabWidth);
+    updateSlider('tabOffsetSlider', 'tabOffsetValue', settings.dynamicTabOffset);
+
     // Colors - Render dynamic UI
     renderGradientStopsUI('front');
     renderGradientStopsUI('back');
     renderGradientStopsUI('border');
+
     // Gradient controls
-    const frontGradientAngle = document.getElementById('frontGradientAngle');
-    const frontGradientAngleValue = document.getElementById('frontGradientAngleValue');
-    const frontGradientSpread = document.getElementById('frontGradientSpread');
-    const frontGradientSpreadValue = document.getElementById('frontGradientSpreadValue');
-    if (frontGradientAngle) {
-        frontGradientAngle.value = settings.frontGradientAngle;
-        if (frontGradientAngleValue) frontGradientAngleValue.textContent = settings.frontGradientAngle + '°';
-    }
-    if (frontGradientSpread) {
-        frontGradientSpread.value = settings.frontGradientSpread;
-        if (frontGradientSpreadValue) frontGradientSpreadValue.textContent = settings.frontGradientSpread + '%';
-    }
+    updateSlider('frontGradientAngle', 'frontGradientAngleValue', settings.frontGradientAngle, '°');
+    updateSlider('frontGradientSpread', 'frontGradientSpreadValue', settings.frontGradientSpread, '%');
+
     // Image & Effects controls
-    const imageOpacitySlider = document.getElementById('imageOpacitySlider');
-    const imageOpacityValue = document.getElementById('imageOpacityValue');
-    const imageFitSelect = document.getElementById('imageFitSelect');
-    const blendModeSelect = document.getElementById('blendModeSelect');
-    const highlightStrengthSlider = document.getElementById('highlightStrengthSlider');
-    const highlightStrengthValue = document.getElementById('highlightStrengthValue');
-    if (imageOpacitySlider) imageOpacitySlider.value = settings.currentImageOpacity;
-    if (imageOpacityValue) imageOpacityValue.textContent = Math.round(settings.currentImageOpacity * 100) + '%';
+    updateSlider('imageOpacitySlider', 'imageOpacityValue', Math.round(settings.currentImageOpacity * 100), '%');
+    updateSlider('highlightStrengthSlider', 'highlightStrengthValue', Math.round(settings.highlightStrength * 100), '%');
+
+    const imageFitSelect = document.getElementById('imageFitSelect') as HTMLSelectElement;
     if (imageFitSelect) imageFitSelect.value = settings.imageFit;
+
+    const blendModeSelect = document.getElementById('blendModeSelect') as HTMLSelectElement;
     if (blendModeSelect) blendModeSelect.value = settings.currentBlendMode;
-    if (highlightStrengthSlider) highlightStrengthSlider.value = settings.highlightStrength;
-    if (highlightStrengthValue) highlightStrengthValue.textContent = Math.round(settings.highlightStrength * 100) + '%';
+
     // Image filter controls
-    const imageBlurSlider = document.getElementById('imageBlurSlider');
-    const imageBlurValue = document.getElementById('imageBlurValue');
-    const imageBrightnessSlider = document.getElementById('imageBrightnessSlider');
-    const imageBrightnessValue = document.getElementById('imageBrightnessValue');
-    const imageContrastSlider = document.getElementById('imageContrastSlider');
-    const imageContrastValue = document.getElementById('imageContrastValue');
-    const imageSaturationSlider = document.getElementById('imageSaturationSlider');
-    const imageSaturationValue = document.getElementById('imageSaturationValue');
-    if (imageBlurSlider) imageBlurSlider.value = settings.imageBlur;
-    if (imageBlurValue) imageBlurValue.textContent = settings.imageBlur + 'px';
-    if (imageBrightnessSlider) imageBrightnessSlider.value = settings.imageBrightness;
-    if (imageBrightnessValue) imageBrightnessValue.textContent = settings.imageBrightness + '%';
-    if (imageContrastSlider) imageContrastSlider.value = settings.imageContrast;
-    if (imageContrastValue) imageContrastValue.textContent = settings.imageContrast + '%';
-    if (imageSaturationSlider) imageSaturationSlider.value = settings.imageSaturation;
-    if (imageSaturationValue) imageSaturationValue.textContent = settings.imageSaturation + '%';
+    updateSlider('imageBlurSlider', 'imageBlurValue', settings.imageBlur, 'px');
+    updateSlider('imageBrightnessSlider', 'imageBrightnessValue', settings.imageBrightness, '%');
+    updateSlider('imageContrastSlider', 'imageContrastValue', settings.imageContrast, '%');
+    updateSlider('imageSaturationSlider', 'imageSaturationValue', settings.imageSaturation, '%');
+
     // Image transform controls
-    const imageScaleXSlider = document.getElementById('imageScaleXSlider');
-    const imageScaleXValue = document.getElementById('imageScaleXValue');
-    const imageScaleYSlider = document.getElementById('imageScaleYSlider');
-    const imageScaleYValue = document.getElementById('imageScaleYValue');
-    const imageOffsetXSlider = document.getElementById('imageOffsetXSlider');
-    const imageOffsetXValue = document.getElementById('imageOffsetXValue');
-    const imageOffsetYSlider = document.getElementById('imageOffsetYSlider');
-    const imageOffsetYValue = document.getElementById('imageOffsetYValue');
-    const imageRotationSlider = document.getElementById('imageRotationSlider');
-    const imageRotationValue = document.getElementById('imageRotationValue');
-    if (imageScaleXSlider) imageScaleXSlider.value = settings.imageScaleX;
-    if (imageScaleXValue) imageScaleXValue.textContent = settings.imageScaleX + '%';
-    if (imageScaleYSlider) imageScaleYSlider.value = settings.imageScaleY;
-    if (imageScaleYValue) imageScaleYValue.textContent = settings.imageScaleY + '%';
-    if (imageOffsetXSlider) imageOffsetXSlider.value = settings.imageOffsetX;
-    if (imageOffsetXValue) imageOffsetXValue.textContent = settings.imageOffsetX + 'px';
-    if (imageOffsetYSlider) imageOffsetYSlider.value = settings.imageOffsetY;
-    if (imageOffsetYValue) imageOffsetYValue.textContent = settings.imageOffsetY + 'px';
-    if (imageRotationSlider) imageRotationSlider.value = settings.imageRotation;
-    if (imageRotationValue) imageRotationValue.textContent = settings.imageRotation + '°';
+    updateSlider('imageScaleXSlider', 'imageScaleXValue', settings.imageScaleX, '%');
+    updateSlider('imageScaleYSlider', 'imageScaleYValue', settings.imageScaleY, '%');
+    updateSlider('imageOffsetXSlider', 'imageOffsetXValue', settings.imageOffsetX, 'px');
+    updateSlider('imageOffsetYSlider', 'imageOffsetYValue', settings.imageOffsetY, 'px');
+    updateSlider('imageRotationSlider', 'imageRotationValue', settings.imageRotation, '°');
+
     // Shadow controls
-    const shadowToggle = document.getElementById('shadowToggle');
+    const shadowToggle = document.getElementById('shadowToggle') as HTMLInputElement;
     if (shadowToggle) shadowToggle.checked = settings.dropShadowEnabled;
 }
 // Main drawing function
