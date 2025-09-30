@@ -1,5 +1,5 @@
 // Gemini API Integration
-import { setMessage } from './utils.js';
+import { setMessage } from './utils';
 
 const GEMINI_API_KEY_STORAGE = 'gemini_api_key';
 const GEMINI_API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';

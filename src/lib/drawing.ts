@@ -1,9 +1,10 @@
 // Drawing Functions
 // Contains all canvas drawing logic for the folder icon generator
-import { canvas, ctx } from './dom-elements.js';
-import { settings, loadedImage, TAB_HEIGHT, BACK_PANEL_INSET } from './state.js';
-import { setMessage } from './utils.js';
-import { renderGradientStopsUI } from './gradients.js';
+import { canvas, ctx } from './dom-elements';
+import { useAppStore, TAB_HEIGHT, BACK_PANEL_INSET } from './state';
+import { setMessage } from './utils';
+import { renderGradientStopsUI } from './gradients';
+
 // Canvas control functions
 export function showCanvas() {
     const canvasPlaceholder = document.getElementById('canvasPlaceholder');
@@ -16,6 +17,7 @@ export function showCanvas() {
         canvasOverlay.style.opacity = '0';
     }
 }
+
 export function hideCanvas() {
     const canvasPlaceholder = document.getElementById('canvasPlaceholder');
     const canvasOverlay = document.getElementById('canvasOverlay');
@@ -26,6 +28,7 @@ export function hideCanvas() {
         canvasOverlay.style.opacity = '0';
     }
 }
+
 // Download button state management
 export function showDownloadLoading() {
     const downloadButton = document.getElementById('downloadButton');
@@ -35,6 +38,7 @@ export function showDownloadLoading() {
     if (downloadButtonText) downloadButtonText.style.opacity = '0';
     if (downloadSpinner) downloadSpinner.classList.add('active');
 }
+
 export function hideDownloadLoading() {
     const downloadButton = document.getElementById('downloadButton');
     const downloadButtonText = document.getElementById('downloadButtonText');
@@ -43,6 +47,7 @@ export function hideDownloadLoading() {
     if (downloadButtonText) downloadButtonText.style.opacity = '1';
     if (downloadSpinner) downloadSpinner.classList.remove('active');
 }
+
 // Helper function to get gradient points based on angle, spread, and offset
 function getGradientPoints(angle, width, height, spread = 100, offsetY = 0) {
     const radians = (angle * Math.PI) / 180;
@@ -62,16 +67,20 @@ function getGradientPoints(angle, width, height, spread = 100, offsetY = 0) {
     const y1 = centerY + sin * halfLength;
     return { x0, y0, x1, y1 };
 }
+
 // Define the path for the folder's back part
 function defineFolderBackPath(ctx, width, height) {
+    const { settings } = useAppStore.getState();
     const backWidth = width - BACK_PANEL_INSET;
     const backHeight = height - BACK_PANEL_INSET;
     const cornerRadius = Math.min(settings.cornerRadius, backWidth / 4, backHeight / 4);
     ctx.beginPath();
     ctx.roundRect(BACK_PANEL_INSET, BACK_PANEL_INSET, backWidth, backHeight, cornerRadius);
 }
+
 // Define the path for the folder's front part
 function defineFolderFrontPath(ctx, width, height) {
+    const { settings } = useAppStore.getState();
     const frontHeight = height - settings.frontPartOffsetY;
     const cornerRadius = Math.min(settings.cornerRadius, width / 4, frontHeight / 4);
     const tabWidth = Math.min(settings.dynamicTabWidth, width * 0.8);
@@ -88,8 +97,10 @@ function defineFolderFrontPath(ctx, width, height) {
         ctx.roundRect(tabX, tabY, tabWidth, TAB_HEIGHT, [tabCornerRadius, tabCornerRadius, 0, 0]);
     }
 }
+
 // Draw image clipped to a specific path
 function drawClippedImage(ctx, image, pathWidth, pathHeight, clipPathFn) {
+    const { settings } = useAppStore.getState();
     if (!image || !settings.currentImageOpacity || settings.currentImageOpacity === 0) return;
     // Create offscreen canvas for applying filters
     const offscreenCanvas = document.createElement('canvas');
@@ -206,8 +217,10 @@ function drawClippedImage(ctx, image, pathWidth, pathHeight, clipPathFn) {
     ctx.globalAlpha = 1.0;
     ctx.restore();
 }
+
 // Update UI controls from current state
 export function updateControlsFromState() {
+    const { settings } = useAppStore.getState();
     // Helper to update a slider and its value display
     const updateSlider = (sliderId: string, valueId: string, value: number, unit: string = '') => {
         const slider = document.getElementById(sliderId) as HTMLInputElement;
@@ -260,8 +273,10 @@ export function updateControlsFromState() {
     const shadowToggle = document.getElementById('shadowToggle') as HTMLInputElement;
     if (shadowToggle) shadowToggle.checked = settings.dropShadowEnabled;
 }
+
 // Main drawing function
 export function drawFolderIcon() {
+    const { settings, loadedImage } = useAppStore.getState();
     if (!ctx || !canvas) {
         console.error('Canvas or context not available');
         return;

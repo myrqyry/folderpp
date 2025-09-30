@@ -1,10 +1,10 @@
 // Color Harmony Tools
-import { settings } from './state.ts';
-import { updateControlsFromState, drawFolderIcon } from './dom.js';
-import { saveSettings, setMessage } from './utils.js';
+import { useAppStore } from './state';
+import { updateControlsFromState, drawFolderIcon } from './dom';
+import { setMessage } from './utils';
 
 // Color conversion utilities
-function hexToHsl(hex) {
+function hexToHsl(hex: string): [number, number, number] {
     const r = parseInt(hex.slice(1, 3), 16) / 255;
     const g = parseInt(hex.slice(3, 5), 16) / 255;
     const b = parseInt(hex.slice(5, 7), 16) / 255;
@@ -29,10 +29,10 @@ function hexToHsl(hex) {
     return [h * 360, s * 100, l * 100];
 }
 
-function hslToHex(h, s, l) {
+function hslToHex(h: number, s: number, l: number): string {
     h /= 360; s /= 100; l /= 100;
     const a = s * Math.min(l, 1 - l);
-    const f = n => {
+    const f = (n: number) => {
         const k = (n + h * 12) % 12;
         const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
         return Math.round(255 * color).toString(16).padStart(2, '0');
@@ -41,11 +41,11 @@ function hslToHex(h, s, l) {
 }
 
 // Main color harmony generation function
-export function generateColorHarmony(type) {
-    // Use the first front gradient color as the base
+export function generateColorHarmony(type: 'complementary' | 'analogous' | 'triadic' | 'monochromatic') {
+    const { settings, updateSettings } = useAppStore.getState();
     const baseColor = settings.frontGradientStops[0] || '#89b4fa';
     const [h, s, l] = hexToHsl(baseColor);
-    let colors = [];
+    let colors: string[] = [];
 
     switch (type) {
         case 'complementary':
@@ -66,45 +66,27 @@ export function generateColorHarmony(type) {
     }
 
     // Apply colors to gradients
-    settings.frontGradientStops = colors.slice(0, 2);
-    settings.backGradientStops = colors.slice(1, 3) || [colors[0], colors[1]];
-    settings.borderGradientStops = [colors[0], colors[colors.length - 1]];
+    updateSettings({
+        frontGradientStops: colors.slice(0, 2),
+        backGradientStops: colors.slice(1, 3).length ? colors.slice(1, 3) : [colors[0], colors[1]],
+        borderGradientStops: [colors[0], colors[colors.length - 1]]
+    });
     
     // Update UI and canvas
     updateControlsFromState();
-    saveSettings();
     drawFolderIcon();
     setMessage(`🌈 Applied ${type} harmony!`, 'success');
 }
 
 // Setup event listeners for harmony buttons
 export function setupHarmonyControls() {
-    console.log('🔧 Setting up color harmony controls...');
-    
     const complementaryBtn = document.getElementById('complementaryBtn');
     const analogousBtn = document.getElementById('analogousBtn');
     const triadicBtn = document.getElementById('triadicBtn');
     const monochromaticBtn = document.getElementById('monochromaticBtn');
 
-    if (complementaryBtn) {
-        complementaryBtn.addEventListener('click', () => generateColorHarmony('complementary'));
-        console.log('✅ Complementary button listener added');
-    }
-    
-    if (analogousBtn) {
-        analogousBtn.addEventListener('click', () => generateColorHarmony('analogous'));
-        console.log('✅ Analogous button listener added');
-    }
-    
-    if (triadicBtn) {
-        triadicBtn.addEventListener('click', () => generateColorHarmony('triadic'));
-        console.log('✅ Triadic button listener added');
-    }
-    
-    if (monochromaticBtn) {
-        monochromaticBtn.addEventListener('click', () => generateColorHarmony('monochromatic'));
-        console.log('✅ Monochromatic button listener added');
-    }
-    
-    console.log('✅ Color harmony controls setup complete');
+    if (complementaryBtn) complementaryBtn.addEventListener('click', () => generateColorHarmony('complementary'));
+    if (analogousBtn) analogousBtn.addEventListener('click', () => generateColorHarmony('analogous'));
+    if (triadicBtn) triadicBtn.addEventListener('click', () => generateColorHarmony('triadic'));
+    if (monochromaticBtn) monochromaticBtn.addEventListener('click', () => generateColorHarmony('monochromatic'));
 }
