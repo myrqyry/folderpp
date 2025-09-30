@@ -1,0 +1,1257 @@
+/* Enhanced Global Element Scaling and Consistency */
+:root {
+    --element-scale: 1;
+    --border-radius-sm: 0.375rem;
+    --border-radius-md: 0.5rem;
+    --border-radius-lg: 0.75rem;
+    --border-radius-xl: 1rem;
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.15);
+    --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.2);
+    --shadow-xl: 0 16px 32px rgba(0, 0, 0, 0.25);
+}
+
+/* Unified form element styling */
+input[type="text"],
+input[type="number"],
+select,
+button:not(.action-button):not(.collapsible) {
+    background: linear-gradient(135deg, var(--surface1), var(--surface0));
+    border: 1px solid var(--surface2);
+    color: var(--text);
+    padding: 0.5rem 0.75rem;
+    border-radius: var(--border-radius-md);
+    font-size: 0.875rem;
+    transition: all var(--transition-normal);
+    box-shadow: var(--shadow-sm);
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(137, 180, 250, 0.2);
+    background: linear-gradient(135deg, var(--surface2), var(--surface1));
+}
+
+/* Enhanced panel sections */
+.panel-section {
+    background: linear-gradient(135deg, var(--surface0), var(--mantle));
+    border: 1px solid var(--surface1);
+    border-radius: var(--border-radius-lg);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow-md);
+    position: relative;
+    overflow: visible;
+}
+
+.panel-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, 
+        var(--blue), var(--sapphire), var(--sky), 
+        var(--teal), var(--green), var(--yellow), 
+        var(--peach), var(--maroon), var(--red), 
+        var(--mauve), var(--pink), var(--flamingo)
+    );
+    opacity: 0.6;
+}
+
+.panel-header {
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+}
+
+.panel-header span:first-child {
+    font-size: 1.125rem;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+/* Enhanced control grids */
+.control-grid {
+    display: grid;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.control-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.control-grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+}
+
+.control-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+}
+
+/* Enhanced labels */
+label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 0.25rem;
+    display: block;
+}
+
+.control-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--subtext1);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.25rem;
+}
+
+/* Responsive scaling adjustments */
+@media (max-width: 768px) {
+    :root {
+        --element-scale: 0.9;
+    }
+    
+    .control-grid-3,
+    .control-grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .panel-section {
+        padding: 0.75rem;
+    }
+    
+    .action-buttons-container {
+        padding: 1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    :root {
+        --element-scale: 0.8;
+    }
+    
+    .control-grid-2,
+    .control-grid-3,
+    .control-grid-4 {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Controls, buttons, sliders, and input styles */
+input[type="color"], .dynamic-color-picker {
+    width: 2.5em;
+    height: 2.5em;
+    border-radius: 0.375rem;
+    border: 2px solid var(--surface1);
+    background-color: transparent;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+input[type="range"] {
+    height: 0.5rem;
+    background-color: var(--surface0);
+    border-radius: 0.25rem;
+    transition: all var(--transition-normal);
+}
+select {
+    border-radius: 0.375rem;
+    border: 1px solid var(--surface1);
+    background-color: var(--surface0);
+    color: var(--text);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+/* Enhanced Shadow Toggle Styles */
+#shadowToggle + div {
+    position: relative;
+    transition: background 0.3s ease;
+}
+
+#shadowToggle:checked + div {
+    box-shadow: 0 0 8px var(--blue); 
+}
+
+#shadowToggle:checked + div::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: radial-gradient(circle at 70% 70%, rgba(137, 180, 250, 0.3), transparent 60%);
+    animation: pulse-shadow 2s ease-in-out infinite alternate;
+}
+
+/* Shadow controls disabled state */
+.shadow-controls-disabled .control-grid {
+    opacity: 0.6;
+    pointer-events: none;
+    filter: grayscale(40%);
+    transition: all 0.3s ease;
+}
+
+.shadow-controls-disabled input[type="range"] {
+    opacity: 0.5;
+}
+
+.shadow-controls-disabled input[type="color"] {
+    border-color: var(--overlay0);
+}
+
+.shadow-status-banner {
+    background: linear-gradient(90deg, transparent, var(--overlay0), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 2s ease-in-out infinite;
+    border-radius: 4px;
+    border: 1px solid var(--surface1);
+    padding: 8px;
+    margin-bottom: 10px;
+    text-align: center;
+    font-style: italic;
+    color: var(--subtext1);
+}
+
+/* Shadow preview box for live feedback */
+#shadowPreview {
+    width: 80px;
+    height: 40px;
+    border-radius: 8px;
+    border: 1.5px solid var(--surface2);
+    background: var(--surface0);
+    margin: 0 auto 0.5rem auto;
+    box-sizing: border-box;
+    transition: box-shadow 0.2s, background 0.2s;
+    display: block;
+}
+
+@keyframes shimmer {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes pulse-shadow {
+    0% { opacity: 0.5; transform: scale(1); }
+    100% { opacity: 1; transform: scale(1.1); }
+}
+
+/* Toggle label highlight when active */
+#shadowToggle:checked ~ .advanced-control-title {
+    color: var(--blue);
+    font-weight: 600;
+}
+
+.gemini-button, .gradient-action-button {
+    background: linear-gradient(135deg, var(--surface2), var(--surface1));
+    color: var(--sky);
+    border: 1px solid var(--sky);
+    border-radius: 0.375rem;
+    transition: all var(--transition-normal);
+    cursor: pointer;
+    font-size: 0.85em;
+    font-weight: 500;
+    padding: 0.22em 0.7em;
+    min-width: 1.7em;
+    min-height: 1.7em;
+    box-shadow: 0 1px 4px rgba(137,220,235,0.05);
+    position: relative;
+    z-index: 1;
+}
+
+/* Enhanced Color Input Styling */
+input[type="color"] {
+    -webkit-appearance: none; -moz-appearance: none; appearance: none;
+    width: 2.5em; height: 2.5em; padding: 0; border: 2px solid var(--surface1);
+    border-radius: 0.375rem; background-color: transparent; cursor: pointer; vertical-align: middle;
+    transition: all var(--transition-normal);
+    position: relative;
+    overflow: hidden;
+}
+
+input[type="color"]:hover {
+    border-color: var(--blue);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+input[type="color"]:active {
+    transform: scale(0.95);
+}
+
+input[type="color"]::-webkit-color-swatch { 
+    border: none; 
+    border-radius: 0.25rem; 
+    padding: 0;
+    transition: all var(--transition-fast);
+}
+input[type="color"]::-webkit-color-swatch-wrapper { 
+    border: none; 
+    border-radius: 0.25rem; 
+    padding: 2px; 
+}
+input[type="color"]::-moz-color-swatch { 
+    border: none; 
+    border-radius: 0.25rem; 
+}
+
+/* Enhanced Dynamic Color Picker Styling */
+.dynamic-color-picker {
+    min-width: 1.5rem !important;
+    width: 1.75rem !important; 
+    height: 1.75rem !important; 
+    padding: 0 !important;
+    border: 1px solid var(--overlay0) !important;
+    transition: all var(--transition-fast) !important;
+    position: relative !important;
+}
+
+.dynamic-color-picker::before {
+    content: '';
+    position: absolute;
+    top: -2px; left: -2px; right: -2px; bottom: -2px;
+    background: linear-gradient(45deg, transparent 30%, var(--blue) 50%, transparent 70%);
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+    z-index: -1;
+}
+
+.dynamic-color-picker:hover::before {
+    opacity: 1;
+    animation: shimmer 1.5s ease-in-out infinite; /* shimmer is in animations.css */
+}
+
+.dynamic-color-picker:hover {
+    transform: scale(1.15);
+    border-color: var(--blue) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.dynamic-color-picker::-webkit-color-swatch { padding: 0; }
+.dynamic-color-picker::-webkit-color-swatch-wrapper { padding: 1px; }
+
+
+/* Enhanced Range Input Styling */
+input[type="range"] {
+    height: 0.5rem; 
+    cursor: pointer; 
+    border-radius: 0.25rem; 
+    background-color: var(--surface0);
+    -webkit-appearance: none; 
+    appearance: none;
+    transition: all var(--transition-normal);
+    position: relative;
+    overflow: hidden;
+}
+
+input[type="range"]:hover {
+    background-color: var(--surface1);
+    transform: scaleY(1.2);
+}
+
+input[type="range"]:focus {
+    outline: 2px solid var(--blue);
+    outline-offset: 2px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none; 
+    appearance: none; 
+    width: 1.2rem; 
+    height: 1.2rem;
+    background: linear-gradient(135deg, currentColor, var(--blue));
+    border-radius: 9999px; 
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+input[type="range"]::-webkit-slider-thumb:active {
+    transform: scale(0.95);
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 1.2rem; 
+    height: 1.2rem; 
+    background: linear-gradient(135deg, currentColor, var(--blue));
+    border-radius: 9999px; 
+    cursor: pointer; 
+    border: none;
+    transition: all var(--transition-fast);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+input[type="range"]::-moz-range-thumb:hover {
+    transform: scale(1.3);
+}
+
+/* Enhanced Select Styling */
+select,
+.size-selector {
+    background: linear-gradient(135deg, var(--surface1), var(--surface0));
+    border: 1.5px solid var(--lavender, #b4befe);
+    color: var(--text);
+    padding: 0.5rem 2.2rem 0.5rem 0.75rem;
+    border-radius: var(--border-radius-md, 0.5rem);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-normal, 0.2s);
+    box-shadow: 0 2px 8px rgba(203, 166, 247, 0.08);
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image:
+      linear-gradient(135deg, var(--surface1), var(--surface0)),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%23a6adc8' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat, no-repeat;
+    background-position: left, right 0.75em center;
+    background-size: 100%, 1.2em;
+    width: 100%;
+}
+
+select:focus,
+.size-selector:focus {
+    outline: none;
+    border-color: var(--blue, #89b4fa);
+    box-shadow: 0 0 0 3px rgba(137, 180, 250, 0.15);
+}
+
+select:hover,
+.size-selector:hover {
+    background: linear-gradient(135deg, var(--surface2), var(--surface1));
+    border-color: var(--mauve, #cba6f7);
+    transform: translateY(-1px);
+}
+
+option {
+    background: var(--surface0, #1e1e2e);
+    color: var(--text, #cdd6f4);
+}
+
+/* Enhanced Button Styling */
+.gemini-button, .gradient-action-button {
+    background: linear-gradient(135deg, var(--surface2), var(--surface1));
+    color: var(--sky); 
+    border: 1px solid var(--sky);
+    font-size: 0.75rem; 
+    padding: 0.25rem 0.5rem; 
+    border-radius: 0.375rem; 
+    transition: all var(--transition-normal);
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.gemini-button::before, .gradient-action-button::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%; right: 0; bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(137, 220, 235, 0.3), transparent);
+    transition: left var(--transition-normal);
+    z-index: 0;
+}
+
+.gemini-button:hover::before, .gradient-action-button:hover::before {
+    left: 100%;
+}
+
+.gemini-button:hover, .gradient-action-button:hover { 
+    background: linear-gradient(135deg, var(--sky), var(--blue));
+    color: var(--base);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(137, 220, 235, 0.3);
+}
+
+.gemini-button:active, .gradient-action-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(137, 220,235, 0.2);
+}
+
+.gemini-button:disabled, .gradient-action-button:disabled {
+    background: var(--surface0); 
+    color: var(--overlay0);
+    border-color: var(--overlay0); 
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Reset button warning style */
+.action-button--warning {
+    background: linear-gradient(135deg, var(--surface2), var(--surface1));
+    color: var(--text);
+    border-color: var(--surface2);
+    transition: all var(--transition-normal);
+}
+
+.action-button--warning:hover {
+    background: linear-gradient(135deg, var(--red), var(--maroon));
+    color: var(--base);
+    border-color: var(--red);
+    box-shadow: 
+        0 6px 20px rgba(220, 38, 127, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.action-button--warning:active {
+    background: linear-gradient(135deg, var(--maroon), var(--red));
+}
+
+/* Enhanced Gradient Controls */
+.gradient-stop-group { 
+    display: flex; 
+    align-items: center; 
+    margin-bottom: 0.25rem;
+    animation: slideIn 0.3s ease-out; /* slideIn is in animations.css */
+    transition: all var(--transition-normal);
+}
+
+.gradient-stop-group:hover {
+    transform: translateX(3px);
+}
+
+/* Add Color Button in Gradient Controls */
+.gradient-action-button {
+    width: 1.5em !important;
+    height: 1.5em !important;
+    min-width: 1.5em !important;
+    min-height: 1.5em !important;
+    padding: 0 !important;
+    margin-left: 0.18em;
+    margin-right: 0.08em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1em;
+    border-radius: 0.35em;
+    background: linear-gradient(135deg, var(--blue), var(--sky));
+    color: var(--base);
+    border: 1.2px solid var(--blue);
+    box-shadow: 0 1px 4px rgba(137,220,235,0.08);
+    transition: all var(--transition-fast);
+}
+
+.gradient-action-button:hover {
+    background: linear-gradient(135deg, var(--sky), var(--blue));
+    color: var(--base);
+    border-color: var(--sapphire);
+    transform: scale(1.08);
+    box-shadow: 0 2px 8px rgba(137,220,235,0.13);
+}
+
+.gradient-action-button:active {
+    transform: scale(0.96);
+    box-shadow: 0 1px 3px rgba(137,220,235,0.09);
+}
+
+.gradient-controls-dynamic { 
+    margin-top: 0.75rem;
+    animation: slideIn 0.5s ease-out; /* slideIn is in animations.css */
+}
+
+/* Enhanced Color Picker Styles (duplicate from original, consolidated) */
+input[type="color"] { /* This is a more specific/enhanced style that was later in the original file */
+    width: 40px;
+    height: 40px;
+    border: none; /* Overrides earlier border */
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+input[type="color"]:hover { /* This is a more specific/enhanced style */
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Enhanced Range Slider Styles (duplicate from original, consolidated) */
+input[type="range"] { /* This is a more specific/enhanced style */
+    -webkit-appearance: none;
+    appearance: none;
+    height: 6px;
+    background: linear-gradient(90deg, var(--surface1), var(--surface2));
+    border-radius: 3px;
+    outline: none;
+    transition: all var(--transition-normal);
+}
+
+input[type="range"]:hover { /* This is a more specific/enhanced style */
+    background: linear-gradient(90deg, var(--surface2), var(--overlay0));
+}
+
+input[type="range"]::-webkit-slider-thumb { /* This is a more specific/enhanced style */
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--blue), var(--sapphire));
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: all var(--transition-normal);
+}
+
+input[type="range"]::-webkit-slider-thumb:hover { /* This is a more specific/enhanced style */
+    transform: scale(1.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+input[type="range"]::-moz-range-thumb { /* This is a more specific/enhanced style */
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--blue), var(--sapphire));
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: all var(--transition-normal);
+}
+
+input[type="range"]::-moz-range-thumb:hover { /* This is a more specific/enhanced style */
+    transform: scale(1.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Corrected typo: 4-8px to 4px 8px */
+}
+
+/* Enhanced Checkbox Styles */
+input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--blue);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+input[type="checkbox"]:hover {
+    transform: scale(1.1);
+}
+
+/* Colored checkbox for shadow section */
+.shadow-checkbox {
+    appearance: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 2px solid var(--red);
+    border-radius: 0.25rem;
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+    transition: all var(--transition-normal);
+    flex-shrink: 0;
+}
+
+.shadow-checkbox:hover {
+    border-color: var(--maroon);
+    background: rgba(243, 139, 168, 0.1);
+    transform: scale(1.05);
+}
+
+.shadow-checkbox:checked {
+    background: linear-gradient(135deg, var(--red), var(--maroon));
+    border-color: var(--maroon);
+    box-shadow: 
+        0 2px 4px rgba(243, 139, 168, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.shadow-checkbox:checked::before {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--base);
+    font-size: 0.75rem;
+    font-weight: bold;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.shadow-checkbox:focus {
+    outline: none;
+    box-shadow: 
+        0 0 0 2px var(--base),
+        0 0 0 4px rgba(243, 139, 168, 0.3);
+}
+
+/* Enhanced Select Styles (duplicate from original, consolidated) */
+select { /* This is a more specific/enhanced style */
+    background: linear-gradient(135deg, var(--surface0), var(--surface1));
+    border: 1px solid var(--surface2); /* Overrides earlier border */
+    border-radius: 0.375rem;
+    padding: 0.5rem; /* Overrides earlier padding */
+    color: var(--text);
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+select:hover { /* This is a more specific/enhanced style */
+    border-color: var(--blue);
+    background: linear-gradient(135deg, var(--surface1), var(--surface2));
+}
+
+select:focus { /* This is a more specific/enhanced style */
+    outline: none;
+    border-color: var(--sapphire);
+    box-shadow: 0 0 0 3px rgba(137, 180, 250, 0.1);
+}
+
+/* Enhanced Action Button Styles */
+.action-buttons-container {
+    background: linear-gradient(135deg, var(--surface0), var(--mantle));
+    border-radius: 0.75rem;
+    padding: 0.5rem 0.75rem; /* Reduced padding for more space */
+    border: 1px solid var(--surface1);
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.action-buttons-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(137, 180, 250, 0.1), transparent);
+    animation: shimmer 3s ease-in-out infinite;
+    z-index: 0;
+}
+
+.action-buttons-grid {
+    display: grid;
+    grid-template-columns: auto auto 1fr auto;
+    gap: 0.75rem;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+}
+
+.size-selector-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 90px;
+}
+
+.size-selector-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--subtext1);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.size-selector {
+    background: linear-gradient(135deg, var(--surface1), var(--surface0));
+    border: 1px solid var(--surface2);
+    color: var(--text);
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.size-selector:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px rgba(137, 180, 250, 0.2);
+}
+
+.size-selector:hover {
+    background: linear-gradient(135deg, var(--surface2), var(--surface1));
+    transform: translateY(-1px);
+}
+
+.action-button {
+    position: relative;
+    background: linear-gradient(135deg, var(--surface1), var(--surface0));
+    border: 1px solid var(--surface2);
+    color: var(--text);
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+    overflow: hidden;
+    box-shadow: 
+        0 4px 8px rgba(0, 0, 0, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.action-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left var(--transition-slow);
+    z-index: 0;
+}
+
+.action-button:hover::before {
+    left: 100%;
+}
+
+.action-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 6px 20px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.action-button:active {
+    transform: translateY(0);
+    box-shadow: 
+        0 2px 8px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.action-button--primary {
+    background: linear-gradient(135deg, var(--green), var(--teal));
+    color: var(--base);
+    border-color: var(--green);
+}
+
+.action-button--primary:hover {
+    background: linear-gradient(135deg, var(--teal), var(--green));
+}
+
+.action-button--primary:disabled {
+    background: linear-gradient(135deg, var(--overlay0), var(--surface1));
+    color: var(--subtext0);
+    border-color: var(--overlay0);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.action-button--primary:disabled:hover {
+    transform: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.action-button--secondary {
+    background: linear-gradient(135deg, var(--surface2), var(--surface1));
+    color: var(--text);
+    border-color: var(--surface2);
+}
+
+.action-button--secondary:hover {
+    background: linear-gradient(135deg, var(--overlay0), var(--surface2));
+    color: var(--text);
+}
+
+.action-button__content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.action-button__icon {
+    font-size: 1.125rem;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+.action-button__text {
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.025em;
+}
+
+.action-button__spinner {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: inherit;
+    border-radius: inherit;
+    z-index: 2;
+}
+
+.action-button__spinner.active {
+    display: flex;
+}
+
+.spinner {
+    width: 1.25rem;
+    height: 1.25rem;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 640px) {
+    .action-buttons-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .size-selector-wrapper {
+        align-self: center;
+    }
+}
+
+/* Enhanced Catppuccin-inspired buttons for specific sections */
+.settings-colors-content button:not(.gemini-button) {
+    background: linear-gradient(135deg, var(--green), var(--teal));
+    color: var(--base);
+    border: 1px solid var(--green);
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    box-shadow: 
+        0 2px 4px rgba(166, 227, 161, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transition: all var(--transition-normal);
+}
+
+.settings-colors-content button:not(.gemini-button):hover {
+    background: linear-gradient(135deg, var(--teal), var(--green));
+    transform: translateY(-1px);
+    box-shadow: 
+        0 4px 8px rgba(166, 227, 161, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.settings-image-content button {
+    background: linear-gradient(135deg, var(--lavender), var(--mauve));
+    color: var(--base);
+    border: 1px solid var(--lavender);
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    box-shadow: 
+        0 2px 4px rgba(183, 189, 248, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    transition: all var(--transition-normal);
+}
+
+.settings-image-content button:hover {
+    background: linear-gradient(135deg, var(--mauve), var(--lavender));
+    transform: translateY(-1px);
+    box-shadow: 
+        0 4px 8px rgba(183, 189, 248, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Enhanced input elements in colored sections */
+.settings-colors-content input[type="range"] {
+    accent-color: var(--green);
+}
+
+.settings-colors-content input[type="color"] {
+    border: 2px solid var(--green);
+    border-radius: 0.375rem;
+    box-shadow: 0 2px 4px rgba(166, 227, 161, 0.2);
+}
+
+.settings-image-content input[type="range"] {
+    accent-color: var(--lavender);
+}
+
+.settings-image-content select {
+    background: linear-gradient(135deg, rgba(183, 189, 248, 0.1), rgba(203, 166, 247, 0.1));
+    border: 1px solid var(--lavender);
+    color: var(--text);
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    transition: all var(--transition-normal);
+}
+
+.settings-image-content select:hover {
+    background: linear-gradient(135deg, rgba(183, 189, 248, 0.2), rgba(203, 166, 247, 0.2));
+    border-color: var(--mauve);
+    box-shadow: 0 2px 4px rgba(183, 189, 248, 0.2);
+}
+
+/* Beautiful Catppuccin-inspired preset buttons */
+.preset-button {
+    background: linear-gradient(135deg, var(--yellow), var(--peach));
+    color: var(--base);
+    border: 1px solid var(--yellow);
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    box-shadow: 
+        0 2px 4px rgba(249, 226, 175, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.preset-button > span {
+    position: relative;
+    z-index: 1;
+}
+
+.preset-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left var(--transition-slow);
+    z-index: 0;
+}
+
+.preset-button:hover::before {
+    left: 100%;
+}
+
+.preset-button:hover {
+    background: linear-gradient(135deg, var(--peach), var(--yellow));
+    transform: translateY(-1px);
+    box-shadow: 
+        0 4px 8px rgba(249, 226, 175, 0.3),
+        0 8px 16px rgba(250, 179, 135, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.preset-button:active {
+    transform: translateY(0);
+    box-shadow: 
+        0 2px 4px rgba(249, 226, 175, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+/* Disabled state for preset buttons */
+.preset-button:disabled {
+    background: linear-gradient(135deg, var(--surface1), var(--surface2));
+    color: var(--overlay0);
+    border: 1px solid var(--surface2);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: 
+        0 1px 2px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.preset-button:disabled::before {
+    display: none;
+}
+
+.preset-button:disabled:hover {
+    background: linear-gradient(135deg, var(--surface1), var(--surface2));
+    transform: none;
+    box-shadow: 
+        0 1px 2px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Special styling for load vs save buttons */
+.preset-button--load {
+    background: linear-gradient(135deg, var(--blue), var(--sapphire));
+    border-color: var(--blue);
+    box-shadow: 
+        0 2px 4px rgba(137, 180, 250, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.preset-button--load:hover {
+    background: linear-gradient(135deg, var(--sapphire), var(--blue));
+    box-shadow: 
+        0 4px 8px rgba(137, 180, 250, 0.3),
+        0 8px 16px rgba(116, 199, 236, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.preset-button--save {
+    background: linear-gradient(135deg, var(--green), var(--teal));
+    border-color: var(--green);
+    box-shadow: 
+        0 2px 4px rgba(166, 227, 161, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.preset-button--save:hover {
+    background: linear-gradient(135deg, var(--teal), var(--green));
+    box-shadow: 
+        0 4px 8px rgba(166, 227, 161, 0.3),
+        0 8px 16px rgba(148, 226, 213, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+/* Enhanced preset section styling */
+.settings-presets-content select {
+    background: linear-gradient(135deg, rgba(249, 226, 175, 0.1), rgba(250, 179, 135, 0.1));
+    border: 1px solid var(--yellow);
+    color: var(--text);
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    transition: all var(--transition-normal);
+}
+
+.settings-presets-content select:hover {
+    background: linear-gradient(135deg, rgba(249, 226, 175, 0.2), rgba(250, 179, 135, 0.2));
+    border-color: var(--peach);
+    box-shadow: 0 2px 4px rgba(249, 226, 175, 0.2);
+}
+
+/* Quick Shadow Preset Buttons */
+.shadow-quick-preset {
+    background: linear-gradient(135deg, #f38ba8, #eba0ac) !important;
+    border: 1px solid rgba(243, 139, 168, 0.5) !important;
+    color: var(--base) !important;
+    font-weight: 600 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 
+        0 2px 8px rgba(243, 139, 168, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.shadow-quick-preset:hover {
+    background: linear-gradient(135deg, #eba0ac, #f2d5cf) !important;
+    border-color: rgba(235, 160, 172, 0.7) !important;
+    box-shadow: 
+        0 4px 16px rgba(243, 139, 168, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+    transform: translateY(-1px) !important;
+}
+
+.shadow-quick-preset:active {
+    transform: translateY(0) !important;
+    box-shadow: 
+        0 2px 8px rgba(243, 139, 168, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Color Harmony Tool Buttons */
+.settings-colors-content #complementaryBtn,
+.settings-colors-content #analogousBtn,
+.settings-colors-content #triadicBtn,
+.settings-colors-content #monochromaticBtn {
+    background: linear-gradient(135deg, rgba(166, 227, 161, 0.8), rgba(148, 226, 213, 0.8)) !important;
+    border: 1px solid rgba(166, 227, 161, 0.5) !important;
+    color: var(--base) !important;
+    font-weight: 600 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 
+        0 2px 8px rgba(166, 227, 161, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.settings-colors-content #complementaryBtn:hover,
+.settings-colors-content #analogousBtn:hover,
+.settings-colors-content #triadicBtn:hover,
+.settings-colors-content #monochromaticBtn:hover {
+    background: linear-gradient(135deg, rgba(148, 226, 213, 0.9), rgba(166, 227, 161, 0.9)) !important;
+    border-color: rgba(148, 226, 213, 0.7) !important;
+    box-shadow: 
+        0 4px 16px rgba(166, 227, 161, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+    transform: translateY(-1px) !important;
+}
+
+.settings-colors-content #complementaryBtn:active,
+.settings-colors-content #analogousBtn:active,
+.settings-colors-content #triadicBtn:active,
+.settings-colors-content #monochromaticBtn:active {
+    transform: translateY(0) !important;
+    box-shadow: 
+        0 2px 8px rgba(166, 227, 161, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Gemini API Key Controls */
+.settings-advanced-content #geminiApiKey {
+    background: linear-gradient(135deg, rgba(203, 166, 247, 0.1), rgba(183, 189, 248, 0.1));
+    border: 1px solid rgba(203, 166, 247, 0.3);
+    color: var(--text);
+}
+
+.settings-advanced-content #geminiApiKey:focus {
+    border-color: rgba(203, 166, 247, 0.6);
+    box-shadow: 
+        0 0 0 2px rgba(203, 166, 247, 0.2),
+        0 4px 16px rgba(203, 166, 247, 0.1);
+}
+
+.settings-advanced-content #toggleApiKeyVisibility:hover {
+    background: rgba(203, 166, 247, 0.1);
+    border-radius: 4px;
+}
+
+.settings-advanced-content #saveApiKey,
+.settings-advanced-content #testApiKey {
+    background: linear-gradient(135deg, rgba(203, 166, 247, 0.8), rgba(183, 189, 248, 0.8)) !important;
+    border: 1px solid rgba(203, 166, 247, 0.5) !important;
+    color: var(--base) !important;
+    font-weight: 600 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1) !important;
+    box-shadow: 
+        0 2px 8px rgba(203, 166, 247, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.settings-advanced-content #saveApiKey:hover,
+.settings-advanced-content #testApiKey:hover {
+    background: linear-gradient(135deg, rgba(183, 189, 248, 0.9), rgba(203, 166, 247, 0.9)) !important;
+    border-color: rgba(183, 189, 248, 0.7) !important;
+    box-shadow: 
+        0 4px 16px rgba(203, 166, 247, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+    transform: translateY(-1px) !important;
+}
+
+.settings-advanced-content #clearApiKey {
+    background: linear-gradient(135deg, rgba(88, 91, 112, 0.8), rgba(108, 112, 134, 0.8));
+    border: 1px solid rgba(88, 91, 112, 0.5);
+    color: var(--text);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.settings-advanced-content #clearApiKey:hover {
+    background: linear-gradient(135deg, rgba(243, 139, 168, 0.9), rgba(235, 160, 172, 0.9)) !important;
+    border-color: rgba(243, 139, 168, 0.7) !important;
+    color: var(--base) !important;
+    transform: translateY(-1px);
+}
+
+.settings-advanced-content #apiKeyStatus {
+    border-radius: 6px;
+    font-size: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.settings-advanced-content .panel-section a {
+    transition: color 0.2s ease;
+}
+
+.settings-advanced-content .panel-section a:hover {
+    color: var(--mauve) !important;
+}

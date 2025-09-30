@@ -1,0 +1,153 @@
+/* Responsive and layout fixes */
+
+    /* Desktop layout - ensure fixed heights and no interference between panels */
+@media (min-width: 1280px) {
+    .main-container {
+        height: calc(100vh - 1rem);
+        max-height: calc(100vh - 1rem);
+        overflow: hidden; /* Prevent main container from scrolling */
+        display: flex;
+        flex-direction: row;
+    }
+    
+    /* Left panel (canvas + buttons) - fixed height with internal flex */
+    .main-container > div:first-child {
+        height: 100%;
+        max-height: 100%;
+        overflow: hidden; /* Prevent left panel from scrolling */
+        flex: 1.5 1 0%; /* Preview side: make 1.5 times wider */
+        min-width: 0;
+    }
+    
+    /* Canvas content area - flexible height */
+    .canvas-content-area {
+        flex: 1;
+        min-height: 0;
+        /* Allow content to expand naturally without clipping */
+    }
+    
+    /* Right panel (settings) - fixed height with internal scroll */
+    .settings-panel-compact {
+        height: 100%;
+        max-height: 100%;
+        overflow: hidden; /* Prevent this panel from scrolling */
+        flex: 1 1 0%; /* Settings side: make narrower */
+        min-width: 0;
+        max-width: 420px; /* Optional max width */
+    }
+    
+    /* Settings scrollable content */
+    .settings-scrollable-content {
+        height: calc(100% - 4rem); /* Account for header */
+        max-height: calc(100% - 4rem);
+        overflow-y: auto; /* Only this content area scrolls */
+        overflow-x: hidden; /* Prevent horizontal scroll */
+    }
+    
+    /* Canvas sizing */
+    #dropZone {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 250px; /* Increased minimum height for better preview */
+    }
+    
+    #canvasPlaceholder,
+    #outputCanvas {
+        width: 100% !important;
+        height: 100% !important;
+        max-width: 500px;
+        max-height: 400px;
+        aspect-ratio: 5/4;
+    }
+    
+    #outputCanvas {
+        object-fit: contain;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+    
+    .xl\:grid {
+        grid-template-columns: minmax(0, 2.5fr) minmax(0, 1fr) !important;
+    }
+}
+
+/* Tablet layout */
+@media (min-width: 768px) and (max-width: 1279px) {
+    .main-container {
+        height: calc(100vh - 1rem);
+        max-height: calc(100vh - 1rem);
+        flex-direction: column;
+    }
+    
+    .main-container > div:first-child {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .settings-panel-compact {
+        height: 300px;
+        max-height: 300px;
+        overflow: hidden;
+    }
+    
+    .settings-scrollable-content {
+        height: calc(100% - 3rem);
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+}
+
+/* Mobile layout */
+@media (max-width: 767px) {
+    .main-container {
+        height: calc(100vh - 1rem);
+        max-height: calc(100vh - 1rem);
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .main-container > div:first-child {
+        flex: 1;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .settings-panel-compact {
+        height: 250px;
+        max-height: 250px;
+        overflow: hidden;
+    }
+    
+    .settings-scrollable-content {
+        height: calc(100% - 2.5rem);
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+    
+    #dropZone > div.relative {
+        width: 300px !important;
+        height: 270px !important; /* Increased size for better mobile preview */
+    }
+}
+
+/* Canvas wrapper positioning */
+#dropZone > div.relative {
+    position: relative;
+}
+
+#canvasOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+}

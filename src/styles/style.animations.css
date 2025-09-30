@@ -1,0 +1,71 @@
+/* Material 3 expressive ripple effect */
+.ripple {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(137,180,250,0.22) 0%, rgba(137,180,250,0.12) 60%, transparent 100%);
+    pointer-events: none;
+    transform: scale(0);
+    opacity: 0.18;
+    z-index: 2;
+    transition: none;
+    will-change: transform, opacity;
+    left: 0; top: 0;
+    width: 0; height: 0;
+    display: none;
+}
+
+/* Ensure buttons are relative for ripple */
+.action-button, .preset-button, .gemini-button, .collapsible, button:not(.no-ripple) {
+    position: relative;
+    overflow: hidden;
+}
+
+/* Collapsible panel expressive shadow */
+.collapsible-content {
+    transition: box-shadow 0.3s cubic-bezier(.4,0,.2,1);
+    will-change: height, opacity, box-shadow;
+    box-shadow: 0 0 0 0 rgba(0,0,0,0);
+}
+/* Animation keyframes and animation-related classes */
+@keyframes backgroundShift {
+    0%, 100% { filter: hue-rotate(0deg); }
+    50% { filter: hue-rotate(10deg); }
+}
+@keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-5px); }
+}
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+@keyframes slideIn {
+    from { transform: translateX(-20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+@keyframes bounceIn {
+    0% { transform: scale(0.3); opacity: 0; }
+    50% { transform: scale(1.05); }
+    70% { transform: scale(0.9); }
+    100% { transform: scale(1); opacity: 1; }
+}
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+@keyframes glow {
+    0%, 100% { box-shadow: 0 0 5px var(--blue); }
+    50% { box-shadow: 0 0 20px var(--blue), 0 0 30px var(--sky); }
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}

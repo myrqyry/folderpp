@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Folder Icon Generator 📁✨ (Multi-Stop Gradients)</title>
+    <link rel="stylesheet" href="src/styles/style.palette.css">
+    <link rel="stylesheet" href="src/styles/style.animations.css">
+    <link rel="stylesheet" href="src/styles/style.layout.css">
+    <link rel="stylesheet" href="src/styles/style.controls.css">
+    <link rel="stylesheet" href="src/styles/style.responsive.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="h-screen p-2 md:p-4 overflow-hidden">
+
+    <input type="file" id="imageInput" accept="image/*" class="hidden">
+
+    <!-- Debug Console (floating, for legacy/debug only, hidden by default) -->
+    <div id="debugConsole" style="display:none"></div>
+
+    <div class="main-container flex flex-col xl:flex-row gap-4 w-full max-w-7xl mx-auto h-[calc(100vh-1rem)]">
+        <div class="bg-[var(--mantle)] p-3 md:p-4 rounded-lg shadow-xl w-full xl:w-3/4 flex flex-col transition-all duration-500 hover:shadow-2xl h-full">
+            <h1 class="text-xl md:text-2xl font-bold mb-3 text-[var(--text)] text-center">
+                Folder Icon Generator 📁✨
+            </h1>
+
+            <!-- Canvas content area - takes available space -->
+            <div class="canvas-content-area flex flex-col items-center justify-center flex-1 min-h-0 overflow-visible">
+                <div id="dropZone" class="relative cursor-pointer group w-full max-w-md xl:max-w-none xl:h-full xl:flex xl:items-center xl:justify-center">
+                    <div class="relative w-[350px] h-[310px] xl:w-full xl:h-full xl:max-w-[600px] xl:max-h-[480px] xl:aspect-[5/4]"> <!-- Wrapper with improved sizing -->
+                        <div id="canvasPlaceholder" class="w-full h-full rounded-md bg-[var(--surface0)] flex items-center justify-center text-[var(--subtext0)] border-2 border-dashed border-[var(--surface1)] shadow-lg transition-all duration-300 hover:border-[var(--blue)] hover:bg-[var(--surface1)] hover:scale-[1.02]">
+                            <div class="text-center pointer-events-none">
+                                <div class="text-4xl mb-3">📁</div>
+                                <div class="text-base font-medium">Drop image here or click to browse</div>
+                                <div class="text-xs mt-2 opacity-70">Generated icon will appear here</div>
+                                <div class="text-xs mt-1 opacity-50 text-[var(--blue)]">🖱️ Click or drag & drop</div>
+                            </div>
+                        </div>
+                        <canvas id="outputCanvas" width="1024" height="896" class="absolute top-0 left-0 w-full h-full rounded-md hidden shadow-lg transition-all duration-500 pointer-events-none"></canvas>
+                        
+                        <!-- Overlay for when canvas is shown -->
+                        <div id="canvasOverlay" class="absolute inset-0 bg-black bg-opacity-50 rounded-md hidden opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                            <div class="text-white text-center pointer-events-none">
+                                <div class="text-2xl mb-2">📁</div>
+                                <div class="text-sm">Drop new image to replace</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center mt-2">
+                    <span id="fileName" class="text-xs text-[var(--subtext0)]">No file chosen</span>
+                </div>
+                
+                <div id="messageArea" class="text-sm h-4 mt-3 message-default"></div>
+                
+                <div id="progressContainer" class="w-full max-w-md mt-3 hidden">
+                    <div class="progress-bar">
+                        <div id="progressBar" class="progress-bar-fill" style="width: 0%"></div>
+                    </div>
+                    <div class="text-xs text-center text-[var(--subtext0)] mt-1">Processing...</div>
+                </div>
+            </div>
+
+            <!-- Fixed action buttons at bottom -->
+            <div class="action-buttons-container flex-shrink-0">
+                <div class="action-buttons-grid">
+                    <button class="action-button action-button--primary" onclick="imageInput.click()">
+                        <span class="action-button__content">
+                            <span class="action-button__icon">📁</span>
+                            <span class="action-button__text">Load Image</span>
+                        </span>
+                    </button>
+                    
+                    <div class="flex gap-2 items-end">
+                        <div class="size-selector-wrapper">
+                            <label class="size-selector-label">Size</label>
+                            <select id="downloadSize" class="size-selector">
+                                <option value="256">256px</option>
+                                <option value="512" selected>512px</option>
+                                <option value="1024">1024px</option>
+                                <option value="2048">2048px</option>
+                            </select>
+                        </div>
+                        <div class="format-selector-wrapper">
+                            <label class="format-selector-label">Format</label>
+                            <select id="downloadFormat" class="format-selector" aria-label="Export format">
+                                <option value="png" selected>PNG</option>
+                                <option value="svg">SVG</option>
+                                <option value="ico">ICO</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button id="downloadButton" class="action-button action-button--primary" disabled>
+                        <span id="downloadButtonText" class="action-button__content">
+                            <span class="action-button__icon">💾</span>
+                            <span class="action-button__text">Download Icon</span>
+                        </span>
+                        <div id="downloadSpinner" class="action-button__spinner">
+                            <div class="spinner"></div>
+                        </div>
+                    </button>
+                    
+                    <button id="resetToDefaultBtn" class="action-button action-button--warning">
+                        <span class="action-button__content">
+                            <span class="action-button__icon">↩️</span>
+                            <span class="action-button__text">Reset All</span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Hidden download link for actual file download -->
+            <a id="downloadLink" class="hidden" download="folder-icon.png"></a>
+        </div>
+
+        <div class="bg-[var(--mantle)] p-4 md:p-6 rounded-lg shadow-xl w-full xl:w-1/4 settings-panel-compact transition-all duration-500 hover:shadow-2xl h-full flex flex-col">
+            <h2 class="text-lg font-bold mb-4 text-[var(--text)] text-center flex items-center justify-center gap-2">
+                <span>⚙️</span>
+                Settings
+                <span>⚙️</span>
+            </h2>
+            
+            <!-- Scrollable settings content wrapper -->
+            <div class="settings-scrollable-content flex-1 overflow-y-auto pr-2 -mr-2">
+                <button type="button" class="collapsible settings-presets">
+                <span class="flex items-center gap-2">
+                    <span>✨</span>
+                    Presets Settings
+                </span>
+            </button>
+            <div class="collapsible-content settings-presets-content" aria-hidden="true" style="overflow:hidden;display:none;height:0;">
+                <div class="space-y-2">
+                    <div id="customPresetsContainer" class="hidden">
+                        <div class="advanced-control">
+                            <div class="advanced-control-title">
+                                <span >🎯</span>
+                                Your Custom Presets
+                            </div>
+                            <div class="advanced-control-description">
+                                Manage your saved custom presets
+                            </div>
+                            <div id="customPresetsList" class="space-y-1"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="advanced-control">
+                        <div class="advanced-control-title">
+                            <span >🎨</span>
+                            Choose Preset
+                        </div>
+                        <div class="advanced-control-description">
+                            Select from professionally designed color schemes
+                        </div>
+                        <select id="presetSelect" class="w-full text-sm">
+                            <option value="">-- Select a Preset --</option>
+                            <option value="pastel-dream">🌸 Pastel Dream</option>
+                            <option value="aurora-flare">🌌 Aurora Flare</option>
+                            <option value="crimson-depth">🌹 Crimson Depth</option>
+                            <option value="emerald-forest">🌲 Emerald Forest</option>
+                            <option value="lavender-sky">💜 Lavender Sky</option>
+                            <option value="mint-breeze">🌿 Mint Breeze</option>
+                            <option value="sunset-glow">🌅 Sunset Glow</option>
+                            <option value="ocean-mist">🌊 Ocean Mist</option>
+                            <option value="rose-garden">🌹 Rose Garden</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex gap-2">
+                        <button id="loadPresetButton" 
+                                class="preset-button preset-button--load flex-1 text-xs py-2 px-3 rounded transition-all duration-300 button-3d" 
+                                disabled
+                                >
+                            <span class="flex items-center justify-center gap-1">
+                                <span >📥</span>
+                                Load Preset
+                            </span>
+                        </button>
+                        <button id="savePresetButton" 
+                                class="preset-button preset-button--save flex-1 text-xs py-2 px-3 rounded transition-all duration-300 button-3d"
+                                >
+                            <span class="flex items-center justify-center gap-1">
+                                <span >💾</span>
+                                Save Current
+                            </span>
+                        </button>
+                    </div>
+                    
+                    <div class="advanced-control">
+                        <div class="advanced-control-title">
+                            <span>📋</span>
+                            Settings Transfer
+                        </div>
+                        <div class="advanced-control-description">
+                            Copy settings to clipboard or paste from another session
+                        </div>
+                        <div class="flex gap-2">
+                            <button id="copySettingsBtn" class="flex-1 text-xs py-2 px-3 rounded bg-[var(--surface1)] hover:bg-[var(--surface2)] text-[var(--text)] transition-all duration-200" >
+                                📋 Copy Settings
+                            </button>
+                            <button id="pasteSettingsBtn" class="flex-1 text-xs py-2 px-3 rounded bg-[var(--surface1)] hover:bg-[var(--surface2)] text-[var(--text)] transition-all duration-200" >
+                                📥 Paste Settings
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <button type="button" class="collapsible settings-shape">
+                    <span class="flex items-center gap-2">
+                        <span >📐</span>
+                        Shape Settings
+                    </span>
+                </button>
+                <div class="collapsible-content settings-shape-content" aria-hidden="true" style="overflow:hidden;display:none;height:0;">
+                    <div class="control-grid">
+                        <div class="advanced-control">
+                            <label for="strokeWidthSlider" class="text-[var(--subtext0)] text-sm mb-1 flex items-center gap-2" >
+                                <span >📏</span>
+                                Border width: <span id="strokeWidthValue" class="font-bold text-[var(--text)]">6</span>px
+                            </label>
+                            <input type="range" id="strokeWidthSlider" min="1" max="20" value="6" class="w-full accent-[var(--mauve)]">
+                        </div>
+                        
+                        <div class="advanced-control">
+                            <label for="cornerRadiusSlider" class="text-[var(--subtext0)] text-sm mb-1 flex items-center gap-2" >
+                                <span >📐</span>
+                                Corner radius: <span id="cornerRadiusValue" class="font-bold text-[var(--text)]">15</span>px
+                            </label>
+                            <input type="range" id="cornerRadiusSlider" min="1" max="40" value="15" class="w-full accent-[var(--pink)]">
+                        </div>
+                        
+                        <div class="advanced-control">
+                            <label for="taperAmountSlider" class="text-[var(--subtext0)] text-sm mb-1 flex items-center gap-2" >
+                                <span >📐</span>
+                                Bottom Taper: <span id="taperAmountValue" class="font-bold text-[var(--text)]">20</span>px
+                            </label>
+                            <input type="range" id="taperAmountSlider" min="0" max="60" value="20" class="w-full accent-[var(--peach)]">
+                        </div>
+                        
+                        <div class="advanced-control">
+                            <label for="frontOffsetYSlider" class="text-[var(--subtext0)] text-sm mb-1 flex items-center gap-2" >
+                                <span >↕️</span>
+                                Front Panel Offset: <span id="frontOffsetYValue" class="font-bold text-[var(--text)]">10</span>px
+                            </label>
+                            <input type="range" id="frontOffsetYSlider" min="0" max="50" value="10" class="w-full accent-[var(--lavender)]">
+                        </div>
+                        
+                        <div class="advanced-control">
+                            <label for="tabWidthSlider" class="text-[var(--subtext0)] text-sm mb-1 flex items-center gap-2" >
+                                <span >↔️</span>
+                                Tab Width: <span id="tabWidthValue" class="font-bold text-[var(--text)]">160</span>px
+                            </label>
+                            <input type="range" id="tabWidthSlider" min="40" max="300" value="160" class="w-full accent-[var(--sky)]">
+                        </div>
+                        
+                        <div class="advanced-control">
+                            <label for="tabOffsetSlider" class="text-[var(--subtext0)] text-sm mb-1 flex items-center gap-2" >
+                                <span >↔️</span>
+                                Tab Offset: <span id="tabOffsetValue" class="font-bold text-[var(--text)]">30</span>px
+                            </label>
+                            <input type="range" id="tabOffsetSlider" min="0" max="200" value="30" class="w-full accent-[var(--sky)]">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Colors Panel -->
+                <button type="button" class="collapsible settings-colors">
+                    <span class="flex items-center gap-2">
+                        <span>🎨</span>
+                        Colors
+                    </span>
+                </button>
+                <div class="collapsible-content settings-colors-content" aria-hidden="true" style="overflow:hidden;display:none;height:0;">
+                    <!-- Front panel gradient -->
+                    <div class="panel-section" id="frontColorSection">
+                        <div class="panel-header">
+                            <span>🖼️</span>
+                            Front Panel Gradient
+                        </div>
+                        <div class="gradient-preview" id="frontGradientPreview"></div>
+                        <div class="mt-2 grid grid-cols-3 gap-2">
+                            <div>
+                                <label class="text-xs text-[var(--subtext0)] mb-1 block">Angle</label>
+                                <input type="range" id="frontGradientAngle" min="0" max="360" value="90" class="w-full accent-[var(--blue)]" aria-label="Angle">
+                                <span class="text-xs text-[var(--text)]" id="frontGradientAngleValue">90°</span>
+                            </div>
+                            <div>
+                                <label class="text-xs text-[var(--subtext0)] mb-1 block">Spread</label>
+                                <input type="range" id="frontGradientSpread" min="50" max="150" value="100" class="w-full accent-[var(--blue)]" aria-label="Spread">
+                                <span class="text-xs text-[var(--text)]" id="frontGradientSpreadValue">100%</span>
+                            </div>
+                            <div>
+                                <label class="text-xs text-[var(--subtext0)] mb-1 block">Y Offset</label>
+                                <input type="range" id="frontGradientOffsetY" min="-20" max="20" value="0" class="w-full accent-[var(--blue)]" aria-label="Y Offset">
+                                <span class="text-xs text-[var(--text)]" id="frontGradientOffsetYValue">0px</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Back panel gradient -->
+                    <div class="panel-section" id="backColorSection">
+                        <div class="panel-header">
+                            <span>🖼️</span>
+                            Back Panel Gradient
+                        </div>
+                        <div class="gradient-preview" id="backGradientPreview"></div>
+                        <div class="mt-2 grid grid-cols-3 gap-2">
+                            <div>
+                                <label class="text-xs text-[var(--subtext0)] mb-1 block">Angle</label>
+                                <input type="range" id="backGradientAngle" min="0" max="360" value="90" class="w-full accent-[var(--green)]" aria-label="Angle">
+                                <span class="text-xs text-[var(--text)]" id="backGradientAngleValue">90°</span>
+                            </div>
+                            <div>
+                                <label class="text-xs text-[var(--subtext0)] mb-1 block">Spread</label>
+                                <input type="range" id="backGradientSpread" min="50" max="150" value="100" class="w-full accent-[var(--green)]" aria-label="Spread">
+                                <span class="text-xs text-[var(--text)]" id="backGradientSpreadValue">100%</span>
+                            </div>
+                            <div>
+                                <label class="text-xs text-[var(--subtext0)] mb-1 block">Y Offset</label>
+                                <input type="range" id="backGradientOffsetY" min="-20" max="20" value="0" class="w-full accent-[var(--green)]" aria-label="Y Offset">
+                                <span class="text-xs text-[var(--text)]" id="backGradientOffsetYValue">0px</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Border gradient -->
+                    <div class="panel-section" id="borderColorSection">
+                        <div class="panel-header">
+                            <span>🎨</span>
+                            Border Gradient
+                        </div>
+                        <div class="gradient-preview" id="borderGradientPreview"></div>
+                        <div class="mt-2 grid grid-cols-3 gap-2">
+                            <div>
+                                <label class="text-xs text-[var(--subtext0)] mb-1 block">Angle</label>
+                                <input type="range" id="borderGradientAngle" min="0" max="360" value="45" class="w-full accent-[var(--yellow)]" aria-label="Angle">
+                                <span class="text-xs text-[var(--text)]" id="borderGradientAngleValue">45°</span>
+                            </div>
+                            <div>
+                                <label class="text-xs text-[var(--subtext0)] mb-1 block">Spread</label>
+                                <input type="range" id="borderGradientSpread" min="50" max="150" value="100" class="w-full accent-[var(--yellow)]" aria-label="Spread">
+                                <span class="text-xs text-[var(--text)]" id="borderGradientSpreadValue">100%</span>
+                            </div>
+                            <div>
+                                <label class="text-xs text-[var(--subtext0)] mb-1 block">Y Offset</label>
+                                <input type="range" id="borderGradientOffsetY" min="-20" max="20" value="0" class="w-full accent-[var(--yellow)]" aria-label="Y Offset">
+                                <span class="text-xs text-[var(--text)]" id="borderGradientOffsetYValue">0px</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Color generation tools -->
+                    <div class="panel-section">
+                        <div class="panel-header">
+                            <span>✨</span>
+                            Color Generation
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="randomizeColorsBtn" class="text-xs py-2 px-3 rounded bg-[var(--surface1)] hover:bg-[var(--surface2)] text-[var(--text)] transition-all duration-200" >
+                                🎲 Randomize
+                            </button>
+                            <button id="suggestColorsFromImageButton" 
+                                    class="gemini-button font-semibold py-2 px-3 rounded-md transition-all duration-300 text-xs relative overflow-hidden" 
+                                    disabled
+                                    >
+                                <span class="relative z-10">✨ AI Colors</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Color harmony tools -->
+                    <div class="panel-section">
+                        <div class="panel-header">
+                            <span>🌈</span>
+                            Harmony Tools
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="complementaryBtn" class="text-xs py-1.5 px-2 rounded bg-[var(--surface1)] hover:bg-[var(--surface2)] text-[var(--text)] transition-all duration-200" >
+                                🔄 Complementary
+                            </button>
+                            <button id="analogousBtn" class="text-xs py-1.5 px-2 rounded bg-[var(--surface1)] hover:bg-[var(--surface2)] text-[var(--text)] transition-all duration-200" >
+                                🌈 Analogous
+                            </button>
+                            <button id="triadicBtn" class="text-xs py-1.5 px-2 rounded bg-[var(--surface1)] hover:bg-[var(--surface2)] text-[var(--text)] transition-all duration-200" >
+                                🔺 Triadic
+                            </button>
+                            <button id="monochromaticBtn" class="text-xs py-1.5 px-2 rounded bg-[var(--surface1)] hover:bg-[var(--surface2)] text-[var(--text)] transition-all duration-200" >
+                                🎯 Monochromatic
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="collapsible settings-image">
+                    <span class="flex items-center gap-2">
+                        <span >🖼️</span>
+                        Image & Effects
+                    </span>
+                </button>
+                <div class="collapsible-content settings-image-content" aria-hidden="true" style="overflow:hidden;display:none;height:0;">
+
+                    <div class="advanced-control">
+                        <div class="advanced-control-title">
+                            <span>📐</span>
+                            Image Transform
+                        </div>
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label for="imageScaleXSlider" class="text-[var(--subtext0)] text-xs mb-1 block" >
+                                        ↔️ Scale X: <span id="imageScaleXValue" class="font-bold text-[var(--text)]">100</span>%
+                                    </label>
+                                    <input type="range" id="imageScaleXSlider" min="10" max="200" value="100" class="w-full accent-[var(--blue)]">
+                                </div>
+                                <div>
+                                    <label for="imageScaleYSlider" class="text-[var(--subtext0)] text-xs mb-1 block" >
+                                        ↕️ Scale Y: <span id="imageScaleYValue" class="font-bold text-[var(--text)]">100</span>%
+                                    </label>
+                                    <input type="range" id="imageScaleYSlider" min="10" max="200" value="100" class="w-full accent-[var(--green)]">
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label for="imageOffsetXSlider" class="text-[var(--subtext0)] text-xs mb-1 block" >
+                                        ⬅️➡️ Offset X: <span id="imageOffsetXValue" class="font-bold text-[var(--text)]">0</span>px
+                                    </label>
+                                    <input type="range" id="imageOffsetXSlider" min="-100" max="100" value="0" class="w-full accent-[var(--yellow)]">
+                                </div>
+                                <div>
+                                    <label for="imageOffsetYSlider" class="text-[var(--subtext0)] text-xs mb-1 block" >
+                                        ⬆️⬇️ Offset Y: <span id="imageOffsetYValue" class="font-bold text-[var(--text)]">0</span>px
+                                    </label>
+                                    <input type="range" id="imageOffsetYSlider" min="-100" max="100" value="0" class="w-full accent-[var(--peach)]">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-3">
+                                <div>
+                                    <label for="imageSkewXSlider" class="text-[var(--subtext0)] text-xs mb-1 block" >
+                                        🔀 Skew X: <span id="imageSkewXValue" class="font-bold text-[var(--text)]">0</span>°
+                                    </label>
+                                    <input type="range" id="imageSkewXSlider" min="-45" max="45" value="0" class="w-full accent-[var(--mauve)]">
+                                </div>
+                                <div>
+                                    <label for="imageSkewYSlider" class="text-[var(--subtext0)] text-xs mb-1 block" >
+                                        🔁 Skew Y: <span id="imageSkewYValue" class="font-bold text-[var(--text)]">0</span>°
+                                    </label>
+                                    <input type="range" id="imageSkewYSlider" min="-45" max="45" value="0" class="w-full accent-[var(--pink)]">
+                                </div>
+                                <div>
+                                    <label for="imageSkewZSlider" class="text-[var(--subtext0)] text-xs mb-1 block" >
+                                        🌀 Image Taper: <span id="imageSkewZValue" class="font-bold text-[var(--text)]">0</span>
+                                    </label>
+                                    <input type="range" id="imageSkewZSlider" min="-60" max="60" value="0" class="w-full accent-[var(--blue)]">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label for="imageRotationSlider" class="text-[var(--subtext0)] text-xs mb-1 block" >
+                                    🔄 Rotation: <span id="imageRotationValue" class="font-bold text-[var(--text)]">0</span>°
+                                </label>
+                                <input type="range" id="imageRotationSlider" min="-180" max="180" value="0" class="w-full accent-[var(--lavender)]">
+                            </div>
+
+                            <div class="flex gap-2 items-center mt-2">
+                                <button id="resetTransformBtn" class="flex-1 bg-[var(--surface1)] hover:bg-[var(--surface2)] text-[var(--text)] text-xs py-2 px-3 rounded transition-all duration-300" >
+                                    <span class="flex items-center justify-center gap-2">
+                                        <span>🔄</span>
+                                        Reset Transform
+                                    </span>
+                                </button>
+                                <div class="flex-1">
+                                    <label for="imageFitSelect" class="text-[var(--subtext0)] text-xs mb-1 block" >
+                                        🖼️ Image Fit:
+                                    </label>
+                                    <select id="imageFitSelect" class="w-full text-xs">
+                                        <option value="cover">📐 Cover (Fill)</option>
+                                        <option value="contain">📏 Contain (Fit)</option>
+                                        <option value="stretch">📈 Stretch</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="advanced-control">
+                        <div class="advanced-control-title">
+                            <span >✨</span>
+                            Visual Effects
+                        </div>
+                        <div class="space-y-3">
+                            <div>
+                                <label for="blendModeSelect" class="text-[var(--subtext0)] text-xs mb-1 block" >
+                                    🖌️ Blend Mode:
+                                </label>
+                                <select id="blendModeSelect" class="w-full text-xs">
+                                    <option value="source-over">🔸 Normal (Default)</option>
+                                    <option value="multiply">🔹 Multiply (Darken)</option>
+                                    <option value="screen">💡 Screen (Lighten)</option>
+                                    <option value="overlay">🌟 Overlay (Contrast)</option>
+                                    <option value="darken">🌑 Darken</option>
+                                    <option value="lighten">☀️ Lighten</option>
+                                    <option value="color-dodge">✨ Color Dodge</option>
+                                    <option value="color-burn">🔥 Color Burn</option>
+                                    <option value="hard-light">💎 Hard Light</option>
+                                    <option value="soft-light">🕯️ Soft Light</option>
+                                    <option value="difference">⚡ Difference</option>
+                                    <option value="exclusion">🎭 Exclusion</option>
+                                    <option value="hue">🌈 Hue</option>
+                                    <option value="saturation">🎨 Saturation</option>
+                                    <option value="color">🎪 Color</option>
+                                    <option value="luminosity">💫 Luminosity</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="imageOpacitySlider" class="text-[var(--subtext0)] text-xs mb-1 block" >
+                                    💧 Opacity: <span id="imageOpacityValue" class="font-bold text-[var(--text)]">100</span>%
+                                </label>
+                                <input type="range" id="imageOpacitySlider" min="0" max="100" value="100" class="w-full accent-[var(--blue)]">
+                            </div>
+                            <div>
+                                <label for="highlightStrengthSlider" class="text-[var(--subtext0)] text-xs mb-1 block" >
+                                    ✨ Highlight: <span id="highlightStrengthValue" class="font-bold text-[var(--text)]">50</span>%
+                                </label>
+                                <input type="range" id="highlightStrengthSlider" min="0" max="100" value="50" class="w-full accent-[var(--green)]">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label for="imageBlurSlider" class="text-[var(--subtext0)] text-xs mb-1 block" >
+                                        🌫️ Blur: <span id="imageBlurValue" class="font-bold text-[var(--text)]">0</span>px
+                                    </label>
+                                    <input type="range" id="imageBlurSlider" min="0" max="10" value="0" class="w-full accent-[var(--mauve)]">
+                                </div>
+                                <div>
+                                    <label for="imageBrightnessSlider" class="text-[var(--subtext0)] text-xs mb-1 block" >
+                                        ☀️ Brightness: <span id="imageBrightnessValue" class="font-bold text-[var(--text)]">100</span>%
+                                    </label>
+                                    <input type="range" id="imageBrightnessSlider" min="50" max="150" value="100" class="w-full accent-[var(--yellow)]">
+                                </div>
+                                <div>
+                                    <label for="imageContrastSlider" class="text-[var(--subtext0)] text-xs mb-1 block" >
+                                        🔆 Contrast: <span id="imageContrastValue" class="font-bold text-[var(--text)]">100</span>%
+                                    </label>
+                                    <input type="range" id="imageContrastSlider" min="50" max="150" value="100" class="w-full accent-[var(--peach)]">
+                                </div>
+                                <div>
+                                    <label for="imageSaturationSlider" class="text-[var(--subtext0)] text-xs mb-1 block" >
+                                        🌈 Saturation: <span id="imageSaturationValue" class="font-bold text-[var(--text)]">100</span>%
+                                    </label>
+                                    <input type="range" id="imageSaturationSlider" min="0" max="200" value="100" class="w-full accent-[var(--pink)]">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <button type="button" class="collapsible settings-shadow">
+                    <span class="flex items-center gap-2">
+                        <span >☀️</span>
+                        Drop Shadow
+                    </span>
+                </button>
+                <div class="collapsible-content settings-shadow-content" aria-hidden="true" style="overflow:hidden;display:none;height:0;">
+                    <!-- Live shadow preview with checkbox side by side -->
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="flex-1">
+                            <div id="shadowPreview"></div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <label class="flex items-center gap-2 cursor-pointer text-sm font-medium text-[var(--text)]" for="shadowToggle">
+                                <input type="checkbox" id="shadowToggle" class="shadow-checkbox" aria-label="Enable Drop Shadow">
+                                <span>☀️ Enable</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="shadowControls" class="space-y-4">
+                    </div>
+                </div>
+            </div>
+            <!-- Advanced Section -->
+            <button type="button" class="collapsible settings-advanced mt-4">
+                <span class="flex items-center gap-2">
+                    <span>🛠️</span>
+                    Advanced
+                </span>
+            </button>
+            <div class="collapsible-content settings-advanced-content" aria-hidden="true" style="overflow:hidden;display:none;height:0;">
+                <div class="panel-section">
+                    <div class="panel-header">
+                        <span>🎨</span>
+                        Theme Selection (Coming Soon)
+                    </div>
+                    <div class="text-xs text-[var(--subtext0)] mb-2">
+                        Switch between Catppuccin and other color themes here in the future.
+                    </div>
+                    <!-- Placeholder for future theme selector -->
+                    <select class="w-full text-sm" disabled>
+                        <option selected>Catppuccin (current)</option>
+                        <option disabled>Latte (coming soon)</option>
+                        <option disabled>Mocha (coming soon)</option>
+                        <option disabled>Other themes...</option>
+                    </select>
+                </div>
+                
+                <div class="panel-section mt-4">
+                    <div class="panel-header">
+                        <span>🤖</span>
+                        Gemini AI Integration
+                    </div>
+                    <div class="text-xs text-[var(--subtext0)] mb-3">
+                        Enter your Google Gemini API key to enable AI-powered color suggestions and features.
+                    </div>
+                    <div class="space-y-3">
+                        <div>
+                            <label for="geminiApiKey" class="block text-xs font-medium text-[var(--subtext1)] mb-1">
+                                API Key
+                            </label>
+                            <div class="relative">
+                                <input 
+                                    type="password" 
+                                    id="geminiApiKey" 
+                                    class="w-full px-3 py-2 text-sm bg-[var(--surface0)] border border-[var(--surface1)] rounded-md focus:outline-none focus:ring-2 focus:ring-[var(--lavender)] focus:border-transparent transition-all duration-200"
+                                    placeholder="Enter your Gemini API key..."
+                                    autocomplete="off"
+                                >
+                                <button 
+                                    type="button" 
+                                    id="toggleApiKeyVisibility" 
+                                    class="absolute right-2 top-1/2 transform -translate-y-1/2 text-[var(--subtext0)] hover:text-[var(--subtext1)] transition-colors"
+                                    title="Toggle visibility"
+                                >
+                                    <span id="eyeIcon">👁️</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button 
+                                id="saveApiKey" 
+                                class="gemini-button flex-1 text-xs py-2 px-3"
+                            >
+                                💾 Save Key
+                            </button>
+                            <button 
+                                id="testApiKey" 
+                                class="gemini-button flex-1 text-xs py-2 px-3"
+                            >
+                                🧪 Test Connection
+                            </button>
+                            <button 
+                                id="clearApiKey" 
+                                class="text-xs py-2 px-3 rounded bg-[var(--surface1)] hover:bg-[var(--red)] hover:text-white transition-all duration-200"
+                            >
+                                🗑️ Clear
+                            </button>
+                        </div>
+                        <div id="apiKeyStatus" class="text-xs hidden">
+                            <!-- Status messages will appear here -->
+                        </div>
+                        <div class="text-xs text-[var(--subtext0)] border-l-2 border-[var(--yellow)] pl-3">
+                            <strong>Note:</strong> Your API key is stored locally and never shared. Get your free API key at 
+                            <a href="https://makersuite.google.com/app/apikey" target="_blank" class="text-[var(--lavender)] hover:underline">
+                                Google AI Studio
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel-section mt-4">
+                    <div class="panel-header">
+                        <span>🔧</span>
+                        Debug Console
+                    </div>
+                    <div class="text-xs text-[var(--subtext0)] mb-2">
+                        View debug output and logs here.
+                    </div>
+                    <div id="debugConsolePanel" class="debug-console-panel">
+                        <div class="debug-console-header">🔧 Debug Console</div>
+                        <div id="debugOutput" class="debug-console-output"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- End scrollable content wrapper -->
+        </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+    
+    <!-- Debug console setup -->
+    <style>
+        .debug-console-panel {
+            width: 100%;
+            max-width: 100%;
+            max-height: 200px;
+            background: linear-gradient(135deg, var(--surface1), var(--surface2));
+            color: #00ff00;
+            font-family: monospace;
+            font-size: 11px;
+            padding: 10px;
+            border-radius: 12px;
+            overflow-y: auto;
+            border: 1.5px solid var(--surface2);
+            box-shadow: 0 2px 12px 0 var(--blue), 0 1.5px 8px rgba(137,180,250,0.10);
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: box-shadow 0.4s, border-color 0.4s, background 0.4s;
+        }
+        .debug-console-panel:focus-within,
+        .debug-console-panel:hover {
+            box-shadow: 0 0 32px 6px var(--blue), 0 8px 25px rgba(203,166,247,0.18);
+            border-color: var(--blue);
+            background: linear-gradient(135deg, var(--surface2), var(--mantle));
+        }
+        .debug-console-header {
+            color: #fff;
+            font-weight: bold;
+            margin-bottom: 5px;
+            letter-spacing: 0.5px;
+            text-shadow: 0 1px 6px var(--blue), 0 0px 2px var(--mauve);
+        }
+        .debug-console-output {
+            min-height: 30px;
+            max-height: 140px;
+            overflow-y: auto;
+            font-size: 11px;
+            color: #00ff00;
+        }
+    </style>
+    <script>
+    // Robust debug console patch for advanced panel
+    (function() {
+        function patchDebugConsole() {
+            const debugOutput = document.getElementById('debugOutput');
+            if (!debugOutput) return;
+
+            // Avoid double-patching
+            if (debugOutput.__patched) return;
+            debugOutput.__patched = true;
+
+            function debugLog(type, ...args) {
+                const entry = document.createElement('div');
+                entry.style.margin = '1px 0';
+                entry.style.color = type === 'error' ? '#ff4444' : type === 'warn' ? '#ffaa00' : '#00ff00';
+                entry.textContent = `[${type}] ${args.map(a => (typeof a === 'object' ? JSON.stringify(a) : a)).join(' ')}`;
+                debugOutput.appendChild(entry);
+                debugOutput.scrollTop = debugOutput.scrollHeight;
+                if (debugOutput.children.length > 20) {
+                    debugOutput.removeChild(debugOutput.firstChild);
+                }
+            }
+
+            // Patch the console methods for this panel only
+            const originalConsole = {
+                log: console.log,
+                warn: console.warn,
+                error: console.error
+            };
+            console.log = function(...args) {
+                debugLog('info', ...args);
+                originalConsole.log.apply(console, args);
+            };
+            console.warn = function(...args) {
+                debugLog('warn', ...args);
+                originalConsole.warn.apply(console, args);
+            };
+            console.error = function(...args) {
+                debugLog('error', ...args);
+                originalConsole.error.apply(console, args);
+            };
+            window.addEventListener('error', function(e) {
+                debugLog('error', 'Script error:', e.message, 'at', e.filename + ':' + e.lineno);
+            });
+            debugLog('info', '🔧 Debug console initialized');
+        }
+
+        // Patch on DOMContentLoaded and whenever the advanced panel is opened
+        document.addEventListener('DOMContentLoaded', patchDebugConsole);
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.settings-advanced')) {
+                setTimeout(patchDebugConsole, 100); // Wait for panel to open/render
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
