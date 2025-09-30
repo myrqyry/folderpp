@@ -49,7 +49,6 @@ export interface FolderIconSettings {
   shadowOffsetY: number;
   shadowOpacity: number;
   shadowSpread: number;
-  [key: string]: any; // For dynamic access
 }
 
 /**
@@ -178,35 +177,3 @@ export const useAppStore = create<AppState>()(
  * @type {string}
  */
 export const API_KEY = ""; // IMPORTANT: Add your Gemini API Key here if you want to use the AI features.
-
-/**
- * Legacy exports for backward compatibility
- * TODO: Remove these once all files are updated to use the store
- */
-export const settings = useAppStore.getState().settings;
-export const loadedImage = useAppStore.getState().loadedImage;
-export const loadedImageBase64 = useAppStore.getState().loadedImageBase64;
-
-/**
- * Legacy functions for backward compatibility
- * TODO: Remove these once all files are updated to use the store
- */
-export function getSettings(): FolderIconSettings {
-  return useAppStore.getState().getSettings();
-}
-
-export function updateSettings(newSettings: Partial<FolderIconSettings>): void {
-  useAppStore.getState().updateSettings(newSettings);
-}
-
-export function resetSettingsToDefaults(): void {
-  useAppStore.getState().resetSettingsToDefaults();
-}
-
-export function setLoadedImage(image: HTMLImageElement, base64Data: string): void {
-  useAppStore.getState().setLoadedImage(image, base64Data);
-}
-
-export function resetLoadedImage(): void {
-  useAppStore.getState().resetLoadedImage();
-}

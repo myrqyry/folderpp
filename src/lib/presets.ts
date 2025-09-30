@@ -1,9 +1,9 @@
 // --- Preset System ---
-import { settings, CUSTOM_PRESETS_KEY } from './state.ts';
-import { customPresetsContainer, customPresetsList, updateControlsFromState, drawFolderIcon } from './dom.ts';
-import { setMessage } from './utils.ts';
-import { renderGradientStopsUI } from './gradients.ts';
-import { renderShadowControls } from './shadow.ts';
+import { useAppStore, CUSTOM_PRESETS_KEY } from './state';
+import { customPresetsContainer, customPresetsList, updateControlsFromState, drawFolderIcon } from './dom';
+import { setMessage } from './utils';
+import { renderGradientStopsUI } from './gradients';
+import { renderShadowControls } from './shadow';
 
 const presets = {
     'pastel-dream': {
@@ -217,11 +217,11 @@ const presets = {
 
 function loadCustomPresets() {
     try {
-        const saved = localStorage.getItem(CUSTOM_PRESETS_KEY); // CUSTOM_PRESETS_KEY is in dom.js
+        const saved = localStorage.getItem(CUSTOM_PRESETS_KEY);
         return saved ? JSON.parse(saved) : {};
     } catch (error) {
         console.error('Error loading custom presets:', error);
-        setMessage('⚠️ Error loading custom presets', 'error'); // setMessage is in utils.js
+        setMessage('⚠️ Error loading custom presets', 'error');
         return {};
     }
 }
@@ -232,10 +232,10 @@ window.deleteCustomPreset = deleteCustomPreset;
 
 function saveCustomPresets(customPresets) {
     try {
-        localStorage.setItem(CUSTOM_PRESETS_KEY, JSON.stringify(customPresets)); // CUSTOM_PRESETS_KEY is in dom.js
+        localStorage.setItem(CUSTOM_PRESETS_KEY, JSON.stringify(customPresets));
     } catch (error) {
         console.error('Error saving custom presets:', error);
-        setMessage('⚠️ Error saving custom presets', 'error'); // setMessage is in utils.js
+        setMessage('⚠️ Error saving custom presets', 'error');
     }
 }
 
@@ -243,13 +243,12 @@ export function updateCustomPresetsUI() {
     const customPresets = loadCustomPresets();
     const hasCustomPresets = Object.keys(customPresets).length > 0;
     
-    // customPresetsContainer and customPresetsList are in dom.js
     if (!customPresetsContainer || !customPresetsList) return;
 
     customPresetsContainer.classList.toggle('hidden', !hasCustomPresets);
     customPresetsList.innerHTML = '';
     
-    Object.entries(customPresets).forEach(([key, preset]) => {
+    Object.entries(customPresets).forEach(([key, preset]: [string, any]) => {
         const presetItem = document.createElement('div');
         presetItem.className = 'flex items-center gap-2 text-xs';
         presetItem.innerHTML = `
@@ -264,64 +263,49 @@ export function updateCustomPresetsUI() {
     });
 }
 
-function loadCustomPreset(key) {
+function loadCustomPreset(key: string) {
+    const { updateSettings } = useAppStore.getState();
     const customPresets = loadCustomPresets();
     if (customPresets[key]) {
-        // Deep merge to ensure all settings are applied, especially for nested objects like gradients
-        Object.keys(customPresets[key].settings).forEach(settingKey => {
-            if (typeof settings[settingKey] === 'object' && settings[settingKey] !== null && !Array.isArray(settings[settingKey])) {
-                Object.assign(settings[settingKey], customPresets[key].settings[settingKey]);
-            } else {
-                settings[settingKey] = customPresets[key].settings[settingKey];
-            }
-        });
-        updateControlsFromState(); // in dom.js
-        drawFolderIcon(); // in dom.js
-        setMessage(`✨ Loaded preset: ${customPresets[key].name}`, 'success'); // in utils.js
-        // Re-render UI for dynamic controls like gradients and shadows
-        ['front', 'back', 'border'].forEach(renderGradientStopsUI); // in gradients.js
-        renderShadowControls(); // in shadow.js
+        updateSettings(customPresets[key].settings);
+        updateControlsFromState();
+        drawFolderIcon();
+        setMessage(`✨ Loaded preset: ${customPresets[key].name}`, 'success');
+        ['front', 'back', 'border'].forEach(renderGradientStopsUI);
+        renderShadowControls();
     }
 }
 
-function deleteCustomPreset(key) {
+function deleteCustomPreset(key: string) {
     if (confirm('Are you sure you want to delete this preset?')) {
         const customPresets = loadCustomPresets();
         delete customPresets[key];
         saveCustomPresets(customPresets);
         updateCustomPresetsUI();
-        setMessage('🗑️ Preset deleted', 'default'); // in utils.js
+        setMessage('🗑️ Preset deleted', 'default');
     }
 }
 
-export function loadPreset(presetKey) {
+export function loadPreset(presetKey: string) {
+    const { updateSettings } = useAppStore.getState();
     if (presets[presetKey]) {
-        // Deep merge for presets as well
-        Object.keys(presets[presetKey].settings).forEach(settingKey => {
-            if (typeof settings[settingKey] === 'object' && settings[settingKey] !== null && !Array.isArray(settings[settingKey])) {
-                Object.assign(settings[settingKey], presets[presetKey].settings[settingKey]);
-            } else {
-                settings[settingKey] = presets[presetKey].settings[settingKey];
-            }
-        });
-        updateControlsFromState(); // in dom.js
-        drawFolderIcon(); // in dom.js
-        setMessage(`✨ Loaded preset: ${presets[presetKey].name}`, 'success'); // in utils.js
-        // Re-render UI for dynamic controls
-        ['front', 'back', 'border'].forEach(renderGradientStopsUI); // in gradients.js
-        renderShadowControls(); // in shadow.js
+        updateSettings(presets[presetKey].settings);
+        updateControlsFromState();
+        drawFolderIcon();
+        setMessage(`✨ Loaded preset: ${presets[presetKey].name}`, 'success');
+        ['front', 'back', 'border'].forEach(renderGradientStopsUI);
+        renderShadowControls();
     }
 }
 
 export function saveCurrentAsPreset() {
+    const { settings } = useAppStore.getState();
     const name = prompt('Enter a name for this preset:');
     if (name && name.trim()) {
         const customPresets = loadCustomPresets();
-        const key = name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-'); // Sanitize key
-        if (customPresets[key]) {
-            if (!confirm('A preset with this name already exists. Overwrite?')) {
-                return;
-            }
+        const key = name.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-');
+        if (customPresets[key] && !confirm('A preset with this name already exists. Overwrite?')) {
+            return;
         }
         customPresets[key] = {
             name: name.trim(),
@@ -329,6 +313,6 @@ export function saveCurrentAsPreset() {
         };
         saveCustomPresets(customPresets);
         updateCustomPresetsUI();
-        setMessage(`💾 Saved preset: ${name}`, 'success'); // in utils.js
+        setMessage(`💾 Saved preset: ${name}`, 'success');
     }
 }
