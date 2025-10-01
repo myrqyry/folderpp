@@ -8,6 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "test": "vitest",
     "lint": "echo 'Linting would go here'",
     "format": "echo 'Formatting would go here'"
   },
@@ -41,6 +42,7 @@
     "tailwindcss": "^4.1.13",
     "typescript": "^5.9.2",
     "vite": "^7.1.5",
+    "vitest": "^3.2.4",
     "zustand": "^5.0.8"
   }
 }

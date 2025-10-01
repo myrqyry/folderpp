@@ -1,11 +1,12 @@
-import { useAppStore, defaultSettings } from '../state';
+import { useAppStore } from '../state';
 import { drawFolderIcon, updateControlsFromState, animateCanvasIn, animateMessageArea, downloadButton, canvas, canvasPlaceholder, canvasOverlay } from '../dom';
-import { renderGradientStopsUI, updateGradientPreview } from '../gradients';
+import { renderGradientStopsUI } from '../gradients';
 import { renderShadowControls } from '../shadow';
 import { loadPreset, saveCurrentAsPreset } from '../presets';
 import { copyToClipboard, debounce, setMessage } from '../utils';
 import { suggestColorsFromImage, isGeminiApiKeyConfigured } from '../gemini-api';
 import { gsap } from 'gsap';
+import { AppError, errorHandler } from '../error';
 
 const RIPPLE_DURATION = 0.44;
 const COLLAPSE_DURATION = 0.32;
@@ -317,12 +318,10 @@ async function suggestColorsFromImageButton() {
             drawFolderIcon();
             setMessage(`✨ Applied ${suggestedColors.length} AI-suggested colors!`, 'success');
         } else {
-            setMessage('⚠️ AI returned fewer colors than expected.', 'warning');
+            throw new AppError('AI returned fewer colors than expected.', 'AI-COLOR-ERROR', '⚠️ AI returned fewer colors than expected. Please try again.');
         }
     } catch (error) {
-        const err = error as Error;
-        let errorMessage = `❌ Failed to get AI suggestions: ${err.message || 'Unknown error'}`;
-        setMessage(errorMessage, 'error');
+        errorHandler(error);
     } finally {
         button.disabled = false;
         button.innerHTML = '<span class="relative z-10">✨ AI Colors</span>';
@@ -356,7 +355,7 @@ async function pasteSettings() {
         drawFolderIcon();
         setMessage('📋 Settings pasted!', 'success');
     } catch (error) {
-        setMessage('❌ Invalid settings data in clipboard.', 'error');
+        errorHandler(new AppError('Failed to parse settings from clipboard.', 'PASTE-SETTINGS-FAILURE', 'Invalid settings data in clipboard.'));
     }
 }
 
