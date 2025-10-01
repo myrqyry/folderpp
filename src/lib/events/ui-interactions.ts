@@ -29,11 +29,8 @@ function animateExpandCollapse(content: HTMLElement, expand: boolean) {
     if (expand) {
         content.style.display = 'block';
         const fullHeight = content.scrollHeight;
-        gsap.fromTo(content, {
-            height: 0,
-            opacity: 0.5,
-            boxShadow: '0 0 0 0 rgba(0,0,0,0)'
-        }, {
+        content.style.height = '0'; // Set height to 0 before animation starts
+        gsap.to(content, {
             height: fullHeight,
             opacity: 1,
             boxShadow: '0 4px 24px 0 rgba(137,180,250,0.10)',
@@ -84,7 +81,8 @@ export function initCollapsibleMenus() {
                 content.style.height = '0';
                 (content as any)._collapsibleInit = true;
             }
-            coll.addEventListener('click', function(this: HTMLElement) {
+            coll.addEventListener('click', function(this: HTMLElement, e: MouseEvent) {
+                if ((e.target as HTMLElement).closest('.ripple')) return;
                 this.classList.toggle('active');
                 const isActive = this.classList.contains('active');
                 this.setAttribute('aria-expanded', String(isActive));
