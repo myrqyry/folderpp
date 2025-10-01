@@ -1,11 +1,11 @@
 // --- Utility functions ---
-import { messageArea } from './dom-elements';
-import { useAppStore, SETTINGS_KEY } from './state';
+import { messageArea } from './dom-elements.ts';
+import { SETTINGS_KEY, settings } from './state.ts';
 
 export type MessageType = 'default' | 'success' | 'error' | 'warning' | 'info';
 
 export function setMessage(msg: string, type: MessageType = 'default'): void {
-    if (!messageArea) return;
+    if (!messageArea) return; // messageArea is in dom.js
     messageArea.textContent = msg;
     messageArea.className = `text-sm h-4 mt-3 message-${type}`;
     // Clear message after a few seconds
@@ -17,18 +17,35 @@ export function setMessage(msg: string, type: MessageType = 'default'): void {
     }, 5000);
 }
 
+export function saveSettings(): void {
+    try {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); // SETTINGS_KEY and settings are in dom.js
+    } catch (e) {
+        console.error('Error saving settings:', e);
+        setMessage('⚠️ Error saving settings. Check console.', 'error');
+    }
+}
+
 export function loadSettings(): void {
     try {
-        const saved = localStorage.getItem(SETTINGS_KEY);
+        const saved = localStorage.getItem(SETTINGS_KEY); // SETTINGS_KEY is in dom.js
         if (saved) {
             const loadedSettings = JSON.parse(saved);
-            // The middleware handles rehydration, but we can manually update if needed.
-            // For now, we trust the middleware. If specific merge logic is needed, it would go here.
-            useAppStore.getState().updateSettings(loadedSettings.settings);
+            // Deep merge to handle new settings added in updates
+            Object.keys(loadedSettings).forEach(key => {
+                if (settings.hasOwnProperty(key) && typeof settings[key] === 'object' && settings[key] !== null && !Array.isArray(settings[key])) {
+                    Object.assign(settings[key], loadedSettings[key]);
+                } else {
+                    (settings as any)[key] = loadedSettings[key];
+                }
+            });
+        } else {
+            // If no saved settings, ensure defaults are applied (they are already in `settings` in dom.js)
         }
     } catch (e) {
         console.error('Error loading settings:', e);
         setMessage('⚠️ Error loading settings. Check console.', 'error');
+        // Fallback to default settings if loading fails
     }
 }
 

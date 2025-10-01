@@ -1,5 +1,5 @@
 // Gemini API Integration
-import { setMessage } from './utils';
+import { setMessage } from './utils.js';
 
 const GEMINI_API_KEY_STORAGE = 'gemini_api_key';
 const GEMINI_API_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
@@ -257,8 +257,6 @@ export async function suggestColorsFromImage(imageBase64) {
 
 // Setup event listeners
 export function setupGeminiApiControls() {
-    console.log('🔧 Setting up Gemini API controls...');
-    
     if (saveApiKeyBtn) {
         saveApiKeyBtn.addEventListener('click', saveGeminiApiKey);
     }
@@ -277,6 +275,4 @@ export function setupGeminiApiControls() {
     
     // Load saved key
     loadGeminiApiKey();
-    
-    console.log('✅ Gemini API controls setup complete');
 }

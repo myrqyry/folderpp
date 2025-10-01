@@ -1,14 +1,13 @@
 // Gradient controls and rendering
-import { useAppStore } from './state';
-import { drawFolderIcon } from './dom';
-import { debounce } from './utils';
+import { settings } from './state.ts';
+import { drawFolderIcon } from './dom.ts';
+import { saveSettings, debounce } from './utils.ts';
 
 // Function to update the gradient preview display
-export function updateGradientPreview(type: 'front' | 'back' | 'border') {
-    const { settings } = useAppStore.getState();
+export function updateGradientPreview(type) {
     const stopsKey = `${type}GradientStops`;
     const angleKey = `${type}GradientAngle`;
-    const previewEl = document.getElementById(`${type}GradientPreview`) as HTMLElement;
+    const previewEl = document.getElementById(`${type}GradientPreview`);
     
     if (!previewEl || !settings[stopsKey]) {
         return;
@@ -42,8 +41,7 @@ export function updateGradientPreview(type: 'front' | 'back' | 'border') {
     previewEl.style.transition = 'all 0.3s ease';
 }
 
-export function renderGradientStopsUI(type: 'front' | 'back' | 'border') {
-    const { settings, updateSettings } = useAppStore.getState();
+export function renderGradientStopsUI(type) {
     const stopsKey = `${type}GradientStops`;
     const angleKey = `${type}GradientAngle`;
     const spreadKey = `${type}GradientSpread`;
@@ -69,24 +67,47 @@ export function renderGradientStopsUI(type: 'front' | 'back' | 'border') {
     
     // Update the existing slider values from settings
     if (angleSlider) {
-        angleSlider.value = String(settings[angleKey]);
+        angleSlider.value = settings[angleKey];
         document.getElementById(`${type}GradientAngleValue`).textContent = settings[angleKey] + '°';
+
+        // Make sure the event listeners are attached
+        angleSlider.addEventListener('input', () => {
+            document.getElementById(`${type}GradientAngleValue`)!.textContent = angleSlider.value + '°';
+            settings[angleKey] = parseInt(angleSlider.value);
+            updateGradientPreview(type); // Update preview immediately
+            saveSettings();
+            drawFolderIcon();
+        });
     }
     
     if (spreadSlider) {
-        spreadSlider.value = String(settings[spreadKey] || 100);
-        document.getElementById(`${type}GradientSpreadValue`).textContent = (settings[spreadKey] || 100) + '%';
+        spreadSlider.value = settings[spreadKey] || 100;
+        document.getElementById(`${type}GradientSpreadValue`)!.textContent = (settings[spreadKey] || 100) + '%';
+
+        spreadSlider.addEventListener('input', () => {
+            document.getElementById(`${type}GradientSpreadValue`)!.textContent = spreadSlider.value + '%';
+            settings[spreadKey] = parseInt(spreadSlider.value);
+            saveSettings();
+            drawFolderIcon();
+        });
     }
     
     if (offsetYSlider) {
-        offsetYSlider.value = String(settings[offsetKey] || 0);
-        document.getElementById(`${type}GradientOffsetYValue`).textContent = (settings[offsetKey] || 0) + 'px';
+        offsetYSlider.value = settings[offsetKey] || 0;
+        document.getElementById(`${type}GradientOffsetYValue`)!.textContent = (settings[offsetKey] || 0) + 'px';
+
+        offsetYSlider.addEventListener('input', () => {
+            document.getElementById(`${type}GradientOffsetYValue`)!.textContent = offsetYSlider.value + 'px';
+            settings[offsetKey] = parseInt(offsetYSlider.value);
+            saveSettings();
+            drawFolderIcon();
+        });
     }
 
-    // Clear previous dynamic controls
+    // Clear previous dynamic controls except the H3 title (if any) and main label
     let dynamicControlsContainer = document.getElementById(`${type}GradientDynamicControls`);
     if (dynamicControlsContainer) {
-        dynamicControlsContainer.innerHTML = '';
+        dynamicControlsContainer.innerHTML = ''; // Clear previous dynamic parts
     } else {
         dynamicControlsContainer = document.createElement('div');
         dynamicControlsContainer.id = `${type}GradientDynamicControls`;
@@ -95,56 +116,51 @@ export function renderGradientStopsUI(type: 'front' | 'back' | 'border') {
 
     // Ensure there's always at least one stop
     if (!settings[stopsKey] || settings[stopsKey].length === 0) {
-        updateSettings({ [stopsKey]: [defaultColors[type]] });
+        settings[stopsKey] = [defaultColors[type]];
     } else if (settings[stopsKey].length === 1 && !settings[stopsKey][0]) {
-        const newStops = [...settings[stopsKey]];
-        newStops[0] = defaultColors[type];
-        updateSettings({ [stopsKey]: newStops });
+         settings[stopsKey][0] = defaultColors[type]; // Ensure the single stop has a valid color if it was somehow cleared
     }
     
-    // Re-fetch settings after potential update
-    const currentSettings = useAppStore.getState().settings;
+    // Update the gradient preview
     updateGradientPreview(type);
 
     // Create container for color stops and add button
     const stopsOuterContainer = document.createElement('div');
-    stopsOuterContainer.className = 'flex items-center gap-2 mb-2 flex-wrap';
+    stopsOuterContainer.className = 'flex items-center gap-2 mb-2 flex-wrap'; // Added flex-wrap
 
     const stopsContainer = document.createElement('div');
     stopsContainer.id = `${type}GradientStopsContainer`;
     stopsContainer.className = 'flex flex-wrap items-center gap-1';
 
-    currentSettings[stopsKey].forEach((color, idx) => {
+    settings[stopsKey].forEach((color, idx) => {
         const stopGroup = document.createElement('div');
-        stopGroup.className = 'gradient-stop-group flex items-center';
+        stopGroup.className = 'gradient-stop-group flex items-center'; // Added flex and items-center
 
         const input = document.createElement('input');
         input.type = 'color';
-        input.value = color || defaultColors[type];
-        input.className = 'dynamic-color-picker w-8 h-8 p-0 border border-[var(--overlay0)]';
-        input.addEventListener('input', debounce(() => {
-            const newStops = [...useAppStore.getState().settings[stopsKey]];
-            newStops[idx] = input.value;
-            updateSettings({ [stopsKey]: newStops });
-            updateGradientPreview(type);
-            drawFolderIcon();
+        input.value = color || defaultColors[type]; // Fallback if color is undefined
+        input.className = 'dynamic-color-picker w-8 h-8 p-0 border border-[var(--overlay0)]'; // Adjusted class for consistency
+        input.addEventListener('input', debounce(() => { // Added debounce
+            settings[stopsKey][idx] = input.value;
+            updateGradientPreview(type); // Update preview immediately
+            saveSettings(); // in utils.js
+            drawFolderIcon(); // in dom.js
         }, 150));
         stopGroup.appendChild(input);
 
-        if (currentSettings[stopsKey].length > 1) {
+        if (settings[stopsKey].length > 1) { // Only allow removing if more than one stop
             const removeBtn = document.createElement('button');
             removeBtn.textContent = '✖';
             removeBtn.className = 'ml-1 text-xs text-[var(--red)] hover:text-[var(--flamingo)] gradient-action-button !bg-transparent !border-0 !p-0 transition-colors';
             removeBtn.title = 'Remove Color Stop';
             removeBtn.onclick = () => {
-                const currentStops = [...useAppStore.getState().settings[stopsKey]];
-                currentStops.splice(idx, 1);
-                if (currentStops.length === 1 && !currentStops[0]) {
-                    currentStops[0] = defaultColors[type];
+                settings[stopsKey].splice(idx, 1);
+                if (settings[stopsKey].length === 1 && !settings[stopsKey][0]) {
+                    settings[stopsKey][0] = defaultColors[type];
                 }
-                updateSettings({ [stopsKey]: currentStops });
-                renderGradientStopsUI(type);
-                drawFolderIcon();
+                saveSettings(); // in utils.js
+                renderGradientStopsUI(type); // Re-render this section
+                drawFolderIcon(); // in dom.js
             };
             stopGroup.appendChild(removeBtn);
         }
@@ -154,16 +170,18 @@ export function renderGradientStopsUI(type: 'front' | 'back' | 'border') {
 
     const addBtn = document.createElement('button'); 
     addBtn.id = `add${type.charAt(0).toUpperCase() + type.slice(1)}GradientStopButton`;
-    addBtn.className = 'gradient-action-button text-sm p-1';
+    addBtn.className = 'gradient-action-button text-sm p-1'; // Adjusted class
     addBtn.textContent = '➕';
     addBtn.title = 'Add Color Stop';
     addBtn.onclick = () => {
-        const currentStops = useAppStore.getState().settings[stopsKey];
-        const lastColor = currentStops.length > 0 ? currentStops[currentStops.length - 1] : defaultColors[type];
-        updateSettings({ [stopsKey]: [...currentStops, lastColor] });
+        const lastColor = settings[stopsKey].length > 0 ? settings[stopsKey][settings[stopsKey].length - 1] : defaultColors[type];
+        settings[stopsKey].push(lastColor);
+        saveSettings(); // in utils.js
         renderGradientStopsUI(type);
-        drawFolderIcon();
+        drawFolderIcon(); // in dom.js
     };
     stopsOuterContainer.appendChild(addBtn);
     dynamicControlsContainer.appendChild(stopsOuterContainer);
+
+    // We no longer need to create gradient control sliders here since they exist in the HTML
 }
