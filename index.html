@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="src/styles/style.layout.css">
     <link rel="stylesheet" href="src/styles/style.controls.css">
     <link rel="stylesheet" href="src/styles/style.responsive.css">
-    <link rel="stylesheet" href="src/styles/debug-console.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
@@ -693,5 +692,102 @@
     </div>
 
     <script type="module" src="/src/main.ts"></script>
+
+    <!-- Debug console setup -->
+    <style>
+        .debug-console-panel {
+            width: 100%;
+            max-width: 100%;
+            max-height: 200px;
+            background: linear-gradient(135deg, var(--surface1), var(--surface2));
+            color: #00ff00;
+            font-family: monospace;
+            font-size: 11px;
+            padding: 10px;
+            border-radius: 12px;
+            overflow-y: auto;
+            border: 1.5px solid var(--surface2);
+            box-shadow: 0 2px 12px 0 var(--blue), 0 1.5px 8px rgba(137,180,250,0.10);
+            margin-top: 0.5rem;
+            margin-bottom: 0.5rem;
+            transition: box-shadow 0.4s, border-color 0.4s, background 0.4s;
+        }
+        .debug-console-panel:focus-within,
+        .debug-console-panel:hover {
+            box-shadow: 0 0 32px 6px var(--blue), 0 8px 25px rgba(203,166,247,0.18);
+            border-color: var(--blue);
+            background: linear-gradient(135deg, var(--surface2), var(--mantle));
+        }
+        .debug-console-header {
+            color: #fff;
+            font-weight: bold;
+            margin-bottom: 5px;
+            letter-spacing: 0.5px;
+            text-shadow: 0 1px 6px var(--blue), 0 0px 2px var(--mauve);
+        }
+        .debug-console-output {
+            min-height: 30px;
+            max-height: 140px;
+            overflow-y: auto;
+            font-size: 11px;
+            color: #00ff00;
+        }
+    </style>
+    <script>
+    // Robust debug console patch for advanced panel
+    (function() {
+        function patchDebugConsole() {
+            const debugOutput = document.getElementById('debugOutput');
+            if (!debugOutput) return;
+
+            // Avoid double-patching
+            if (debugOutput.__patched) return;
+            debugOutput.__patched = true;
+
+            function debugLog(type, ...args) {
+                const entry = document.createElement('div');
+                entry.style.margin = '1px 0';
+                entry.style.color = type === 'error' ? '#ff4444' : type === 'warn' ? '#ffaa00' : '#00ff00';
+                entry.textContent = `[${type}] ${args.map(a => (typeof a === 'object' ? JSON.stringify(a) : a)).join(' ')}`;
+                debugOutput.appendChild(entry);
+                debugOutput.scrollTop = debugOutput.scrollHeight;
+                if (debugOutput.children.length > 20) {
+                    debugOutput.removeChild(debugOutput.firstChild);
+                }
+            }
+
+            // Patch the console methods for this panel only
+            const originalConsole = {
+                log: console.log,
+                warn: console.warn,
+                error: console.error
+            };
+            console.log = function(...args) {
+                debugLog('info', ...args);
+                originalConsole.log.apply(console, args);
+            };
+            console.warn = function(...args) {
+                debugLog('warn', ...args);
+                originalConsole.warn.apply(console, args);
+            };
+            console.error = function(...args) {
+                debugLog('error', ...args);
+                originalConsole.error.apply(console, args);
+            };
+            window.addEventListener('error', function(e) {
+                debugLog('error', 'Script error:', e.message, 'at', e.filename + ':' + e.lineno);
+            });
+            debugLog('info', '🔧 Debug console initialized');
+        }
+
+        // Patch on DOMContentLoaded and whenever the advanced panel is opened
+        document.addEventListener('DOMContentLoaded', patchDebugConsole);
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.settings-advanced')) {
+                setTimeout(patchDebugConsole, 100); // Wait for panel to open/render
+            }
+        });
+    })();
+    </script>
 </body>
 </html>
